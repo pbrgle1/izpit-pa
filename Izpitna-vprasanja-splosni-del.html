@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Izpit PA">
+<title>Strokovni izpit PA — Splošni del</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f8fafc; color: #1e293b; -webkit-text-size-adjust: 100%; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+  /* Touch targets minimum 44px */
+  button, a { min-height: 44px; }
+  textarea:focus, input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
+
+  /* Layout */
+  .app { display: flex; height: 100%; }
+  .sidebar { width: 280px; flex-shrink: 0; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .toolbar { flex-shrink: 0; background: #fff; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .content { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; }
+
+  /* Sidebar items */
+  .nav-item { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; background: none; font-size: 14px; cursor: pointer; border-radius: 8px; margin-bottom: 2px; transition: background .15s; min-height: 52px; }
+  .nav-item:hover, .nav-item:active { background: #f1f5f9; }
+  .nav-item.active { font-weight: 600; }
+  .nav-item .nav-sub { display: block; font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+  /* Search */
+  .search-input { flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 15px; max-width: 500px; background: #f8fafc; }
+
+  /* Question card */
+  .q-card { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: #fff; transition: box-shadow .2s; }
+  .q-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .q-header { display: flex; align-items: flex-start; gap: 12px; padding: 16px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-size: 15px; line-height: 1.5; min-height: 56px; }
+  .q-header.learned { background: #f0fdf4; }
+  .q-text { flex: 1; font-weight: 500; color: #1e293b; }
+  .q-toggle { font-size: 18px; flex-shrink: 0; margin-top: 2px; user-select: none; }
+  .q-check { font-size: 22px; flex-shrink: 0; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* Answer area */
+  .q-answer { padding: 0 16px 16px; border-top: 1px solid #f1f5f9; }
+  .q-answer p { font-size: 14px; line-height: 1.7; color: #475569; margin-top: 12px; white-space: pre-line; }
+  .q-answer textarea { width: 100%; margin-top: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; line-height: 1.7; min-height: 140px; font-family: inherit; resize: vertical; color: #334155; }
+
+  /* Sources */
+  .sources { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .src-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+  .src-badge { display: inline-flex; align-items: center; font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #e0f2fe; color: #0369a1; font-weight: 500; white-space: nowrap; }
+  .src-badge a { color: #0369a1; text-decoration: underline; }
+  .src-badge a:hover { text-decoration: none; }
+
+  .edit-btn { margin-left: auto; font-size: 13px; padding: 6px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: #64748b; cursor: pointer; min-height: 36px; }
+  .edit-btn:hover { background: #f8fafc; }
+
+  /* Progress bar */
+  .progress-wrap { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .progress-bar { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #22c55e; border-radius: 3px; transition: width .3s; }
+  .progress-text { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+
+  /* Section header */
+  .section-header { margin-bottom: 16px; }
+  .section-title { font-size: 20px; font-weight: 700; }
+  .section-sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+  /* Sidebar header */
+  .sidebar-head { padding: 20px 16px; border-bottom: 1px solid #e2e8f0; }
+  .sidebar-head h1 { font-size: 16px; font-weight: 700; }
+  .sidebar-head p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px; -webkit-overflow-scrolling: touch; }
+  .sidebar-foot { padding: 12px; border-top: 1px solid #e2e8f0; }
+  .export-btn { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 13px; color: #64748b; cursor: pointer; }
+  .export-btn:hover { background: #f8fafc; }
+
+  /* Menu button */
+  .menu-btn { font-size: 22px; background: none; border: none; color: #64748b; cursor: pointer; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .menu-btn:hover { background: #f1f5f9; }
+
+  /* Stats */
+  .stats { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+
+  /* Mobile overlay */
+  .overlay { display: none; }
+
+  /* Empty state */
+  .empty { text-align: center; color: #94a3b8; margin-top: 80px; font-size: 15px; }
+
+  /* Responsive — tablet & phone */
+  @media (max-width: 900px) {
+    .sidebar { position: fixed; z-index: 50; top: 0; left: 0; bottom: 0; width: 300px; transform: translateX(-100%); transition: transform .25s ease; }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.15); }
+    .overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .25s; }
+    .overlay.visible { opacity: 1; pointer-events: auto; }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useCallback, useEffect } = React;
+
+// ── localStorage helpers (persist progress on iPad) ──
+function loadState(key, fallback) {
+  try { const v = localStorage.getItem("izpit_" + key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function saveState(key, val) {
+  try { localStorage.setItem("izpit_" + key, JSON.stringify(val)); } catch {}
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ŠTUDIJSKA APLIKACIJA — Strokovni izpit PA · Splošni del
+   ZAPS · April 2026
+   ════════════════════════════════════════════════════════════════════ */
+
+// ── PISRS povezave ──
+const PISRS = {
+  OZ:     "https://pisrs.si/pregledPredpisa?id=ZAKO1263",
+  SPZ:    "https://pisrs.si/pregledPredpisa?id=ZAKO1467",
+  ZUP:    "https://pisrs.si/pregledPredpisa?id=ZAKO1603",
+  ZASP:   "https://pisrs.si/pregledPredpisa?id=ZAKO1786",
+  "GZ-1": "https://pisrs.si/pregledPredpisa?id=ZAKO7108",
+  ZAID:   "https://pisrs.si/pregledPredpisa?id=ZAKO7605",
+  "ZUreP-3": "https://pisrs.si/pregledPredpisa?id=ZAKO7431",
+  ZKN:    "https://pisrs.si/pregledPredpisa?id=ZAKO7952",
+  "ZVO-2":"https://pisrs.si/pregledPredpisa?id=ZAKO8286",
+  "ZZK-1":"https://pisrs.si/pregledPredpisa?id=ZAKO3603",
+  ZEN:    "https://pisrs.si/pregledPredpisa?id=ZAKO4542",
+  "ZJN-3":"https://pisrs.si/pregledPredpisa?id=ZAKO7086",
+};
+
+// ── Podatki: vprašanja & odgovori ──
+const SECTIONS = [
+  // ═══════════════════════════════════════════════════
+  // 1. OBLIGACIJSKI ZAKONIK (OZ)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "oz",
+    title: "1. Obligacijski zakonik (OZ)",
+    subtitle: "XII. poglavje: Gradbena pogodba",
+    icon: "📜",
+    color: "#2563eb",
+    lawKey: "OZ",
+    questions: [
+      {
+        id: "oz-1",
+        q: "Kaj je gradbena pogodba in kakšne so njene bistvene sestavine?",
+        a: "Gradbena pogodba je pogodba, s katero se izvajalec zavezuje, da bo po določenem načrtu v dogovorjenem roku zgradil določeno gradbo na določenem zemljišču oz. da bo na takem zemljišču oz. na že obstoječem objektu izvedel kakšna druga gradbena dela, naročnik (investitor) pa se zavezuje, da mu bo za to plačal določeno ceno. Bistvene sestavine so: predmet (gradba/dela), načrt, rok, cena. Pogodba mora biti sklenjena v pisni obliki.",
+        src: [{ law: "OZ", art: "649. člen" }]
+      },
+      {
+        id: "oz-2",
+        q: "Kaj je cena in kako se določa »ključ v roke«?",
+        a: "Cena se lahko določi kot enotna cena (»ključ v roke«) ali po enoti mere. Pri »ključ v roke« izvajalec prevzame obveznost izvedbe za vnaprej dogovorjeno skupno ceno — naročnik plača celoten znesek ne glede na dejanske stroške. Izvajalec nosi tveganje višjih stroškov, naročnik pa tveganje, da bi bili dejanski stroški nižji. Sprememba cene je možna le ob bistveno spremenjenih okoliščinah (člen 656 OZ).",
+        src: [{ law: "OZ", art: "649.–658. člen" }]
+      },
+      {
+        id: "oz-3",
+        q: "Kaj pomeni odmik od načrta in napake v načrtu? Kakšna je odgovornost za napake?",
+        a: "Odmik od načrta pomeni, da izvajalec izvede dela drugače, kot je določeno v načrtu ali gradbeni pogodbi. Izvajalec sme odstopiti od načrta le s soglasjem naročnika. Če načrt vsebuje napake, je za njih odgovoren tisti, ki ga je izdelal (projektant). Če je načrt predložil naročnik, odgovarja naročnik; če ga je izdelal izvajalec ali njegov podizvajalec, odgovarja izvajalec. Projektant odgovarja za napake v projektni dokumentaciji po splošnih pravilih o odgovornosti.",
+        src: [{ law: "OZ", art: "650.–651. člen" }]
+      },
+      {
+        id: "oz-4",
+        q: "Kakšna je odgovornost projektanta in solidarna odgovornost?",
+        a: "Projektant odgovarja za napake v načrtu, ki jih je izdelal. Če je napaka v načrtu povzročila škodo, je projektant odškodninsko odgovoren. Odgovornost projektanta je solidarna z odgovornostjo izvajalca, kadar oba prispevata k nastanku škode (npr. napaka v načrtu + nepravilna izvedba). Solidarna odgovornost pomeni, da oškodovanec lahko zahteva povrnitev celotne škode od kateregakoli solidarnega dolžnika.",
+        src: [{ law: "OZ", art: "663.–665. člen" }]
+      },
+      {
+        id: "oz-5",
+        q: "Kaj je odgovornost izvajalca in projektanta pri izvršenih delih?",
+        a: "Izvajalec odgovarja za solidnost gradbe in je odgovoren za napake v izvedbi. Projektant odgovarja za napake v projektni dokumentaciji (načrtu). Oba sta solidarno odgovorna za škodo, ki nastane investitorju ali tretjim osebam, če je škoda posledica napak v načrtu ali napak v izvedbi. Odgovornost za solidnost gradbe traja 10 let od prevzema del.",
+        src: [{ law: "OZ", art: "662.–665. člen" }]
+      },
+      {
+        id: "oz-6",
+        q: "Kaj je gradbena pogodba s posebnim določilom? Kakšna je odgovornost izvajalca in projektanta za solidnost gradbe?",
+        a: "Gradbena pogodba s posebnim določilom je tista, pri kateri se stranki dogovorita o posebnih pogojih (npr. pogodbena kazen, garancijski rok, zavarovanje). Odgovornost za solidnost gradbe pomeni, da izvajalec in projektant odgovarjata za napake, ki se pokažejo v roku 10 let od prevzema gradbe. To vključuje napake v konstrukciji, tleh, v načrtu in izvedbi. Odgovornost je solidarna — oškodovanec lahko terja kateregakoli.",
+        src: [{ law: "OZ", art: "659.–665. člen" }]
+      },
+      {
+        id: "oz-7",
+        q: "Kakšen je način obračuna (ključ, po izmerah)? Kako poteka obračun po izmerah?",
+        a: "OZ pozna dva načina obračuna: (1) Po enotnih cenah / po izmerah — cena se določi na podlagi dejansko izvedenih količin del, pomnoženih z dogovorjenimi enotnimi cenami. Obračun temelji na knjigi obračunskih izmer. (2) »Ključ v roke« — skupna, vnaprej dogovorjena cena za celoten obseg del. Pri obračunu po izmerah se upoštevajo: nepredvidena dela (če so bila nujna in odobrena), manjkajoča dela, presežna dela in dodatna dela.",
+        src: [{ law: "OZ", art: "654.–658. člen" }]
+      },
+      {
+        id: "oz-8",
+        q: "Kaj so splošne gradbene uzance, pogodba na ključ in kdaj ne velja?",
+        a: "Splošne gradbene uzance (SGU) so zbirka poslovnih običajev v gradbeništvu. Veljajo, kadar se stranki nanje sklicujeta v pogodbi ali kadar je njihova uporaba običajna. Pogodba na ključ pomeni, da je cena fiksna za celotno izvedbo. Ne velja oz. se lahko spremeni ob: bistveno spremenjenih okoliščinah (nepredvidljive spremembe cen materialov, višja sila), ali če so nastale spremembe v obsegu del, ki jih naročnik zahteva naknadno.",
+        src: [{ law: "OZ", art: "649., 656. člen" }]
+      },
+      {
+        id: "oz-9",
+        q: "Kaj je subsidiarna odgovornost in solidarna odgovornost?",
+        a: "Solidarna odgovornost pomeni, da upnik lahko zahteva izpolnitev celotne obveznosti od kateregakoli solidarnega dolžnika. Subsidiarna odgovornost pa pomeni, da se od subsidiarnega dolžnika lahko zahteva izpolnitev šele, ko glavni dolžnik ne izpolni obveznosti. Pri gradbeni pogodbi sta izvajalec in projektant praviloma solidarno odgovorna za napake, ki povzročijo škodo.",
+        src: [{ law: "OZ", art: "663.–665. člen" }]
+      },
+      {
+        id: "oz-10",
+        q: "Kaj je pogodbena kazen, pogodbe FIDIC, vloga, pooblastila, obveznosti in odgovornost nadzornika pri urejanju razmerij med investitorjem in izvajalcem?",
+        a: "Pogodbena kazen je pogodbeno določena denarna obveznost, ki jo dolžnik plača upniku, če ne izpolni obveznosti ali zamudi z izpolnitvijo. Pogodbe FIDIC (Fédération Internationale Des Ingénieurs-Conseils) so mednarodni standardni vzorci gradbenih pogodb, ki urejajo razmerja med naročnikom, izvajalcem in inženirjem. Nadzornik (inženir po FIDIC) ima vlogo neodvisnega preverjanja kakovosti in skladnosti izvedbe s projektom, potrjevanja situacij in reševanja sporov. Obveznosti nadzornika: nadzor nad izvedbo, preverjanje kakovosti, vodenje gradbenega dnevnika.",
+        src: [{ law: "OZ", art: "247.–253. člen (pogodbena kazen)" }, { law: "GZ-1", art: "78.–83. člen (nadzor)" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 2. STVARNOPRAVNI ZAKONIK (SPZ)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "spz",
+    title: "2. Stvarnopravni zakonik (SPZ)",
+    subtitle: "Ureja temeljna načela stvarnega prava, posest in stvarne pravice",
+    icon: "🏠",
+    color: "#7c3aed",
+    lawKey: "SPZ",
+    questions: [
+      {
+        id: "spz-1",
+        q: "Kaj so stvarne pravice? Katere stvarne pravice poznamo?",
+        a: "Stvarne pravice so absolutne pravice, ki delujejo erga omnes (proti vsem). SPZ pozna pet stvarnih pravic: (1) lastninska pravica — najobsežnejša pravica na stvari; (2) zastavna pravica — pravica upnika, da se poplača iz vrednosti zastavljene stvari; (3) služnosti — pravica uporabe tuje nepremičnine; (4) pravica stvarnega bremena — obveznost lastnika stvari v korist upravičenca; (5) stavbna pravica — pravica imeti v lasti zgradbo na tujem zemljišču.",
+        src: [{ law: "SPZ", art: "2. člen" }]
+      },
+      {
+        id: "spz-2",
+        q: "Kaj je povezanost zemljišča in objekta?",
+        a: "Vse, kar je po namenu trajno spojeno ali je trajno na nepremičnini, nad ali pod njo, je sestavina nepremičnine (superficies solo cedit), razen če zakon določa drugače. To pomeni, da je stavba del zemljiške parcele in ni samostojen predmet lastninske pravice. Izjeme: stavbna pravica (272. člen SPZ), etažna lastnina, in nekatere posebne ureditve.",
+        src: [{ law: "SPZ", art: "8. člen" }]
+      },
+      {
+        id: "spz-3",
+        q: "Kaj je zaupanje v zemljiško knjigo?",
+        a: "Kdor v pravnem prometu pošteno ravna in se zanese na podatke o pravicah, ki so vpisane v zemljiško knjigo, zaradi tega ne sme trpeti škodljivih posledic. To je načelo zaupanja v zemljiško knjigo (publiciteta). Kdor pridobi pravico v zaupanju na popolnost in pravilnost zemljiške knjige, uživa pravno varstvo.",
+        src: [{ law: "SPZ", art: "10. člen" }]
+      },
+      {
+        id: "spz-4",
+        q: "Kaj je domneva lastninske pravice?",
+        a: "Za lastnika nepremičnine velja tisti, ki je vpisan v zemljiško knjigo kot lastnik. Za lastnika premičnine se domneva njen lastniški posestnik. Gre za izpodbojni pravni domnevi — mogoče ju je izpodbiti z dokazom nasprotnega.",
+        src: [{ law: "SPZ", art: "11. člen" }]
+      },
+      {
+        id: "spz-5",
+        q: "Kaj je nepremičnina?",
+        a: "Nepremičnina je prostorsko odmerjen del zemeljske površine, skupaj z vsemi sestavinami. Sestavina nepremičnine je vse, kar je po namenu trajno spojeno z njo (stavbe, nasadi, vgrajene naprave). Vse druge stvari so premičnine. Nepremičnine se evidentirajo v zemljiškem katastru in zemljiški knjigi.",
+        src: [{ law: "SPZ", art: "18. člen" }]
+      },
+      {
+        id: "spz-6",
+        q: "Kaj je javno dobro?",
+        a: "Javno dobro je stvar, ki jo v skladu z njenim namenom ob enakih pogojih lahko uporablja vsakdo (splošna raba). Na javnem dobru ni mogoče pridobiti lastninske pravice ali drugih stvarnih pravic, ki bi bile v nasprotju z njegovim namenom. Javno dobro v posebni rabi (koncesija) pa dopušča, da se pod posebnimi pogoji podeli pravica posebne rabe.",
+        src: [{ law: "SPZ", art: "19. člen" }]
+      },
+      {
+        id: "spz-7",
+        q: "Kaj je zemljiškoknjižno dovolilo?",
+        a: "Zemljiškoknjižno dovolilo (intabulacijska klavzula) je izrecna in nepogojna izjava tistega, čigar pravica se prenaša, omejuje, obremenjuje ali preneha, da dovoljuje vpis v zemljiško knjigo. Je pogoj za vpis stvarne pravice na nepremičnini v zemljiško knjigo. Podpis na dovolilu mora biti overjen.",
+        src: [{ law: "SPZ", art: "23. člen" }]
+      },
+      {
+        id: "spz-8",
+        q: "Kaj je lastninska pravica?",
+        a: "Lastninska pravica je pravica imeti stvar v posesti, jo uporabljati in uživati na najobsežnejši način ter z njo razpolagati. Omejitve lastninske pravice so mogoče le na podlagi zakona. Lastninska pravica ne more biti vezana na rok ali pogoj, razen če zakon določa drugače. Lastninska pravica na nepremičninah se pridobi z vpisom v zemljiško knjigo.",
+        src: [{ law: "SPZ", art: "37. člen" }]
+      },
+      {
+        id: "spz-9",
+        q: "Kaj je pridobitev lastninske pravice na nepremičninah?",
+        a: "Lastninska pravica na nepremičnini se pridobi z vpisom v zemljiško knjigo na podlagi veljavnega pravnega posla (pogodbe), sodne odločbe, zakona ali dedovanja. Za vpis je potrebno zemljiškoknjižno dovolilo (intabulacijska klavzula). Pridobitev na podlagi priposestvovanja: po 10 letih dobre vere in lastniške posesti.",
+        src: [{ law: "SPZ", art: "37., 47. člen" }]
+      },
+      {
+        id: "spz-10",
+        q: "Kaj je vzdrževalna dela na nepremičnini?",
+        a: "Vzdrževalna dela so dela, ki so potrebna za ohranitev nepremičnine v stanju, ki zagotavlja njeno normalno uporabo. Lastnik mora nepremičnino vzdrževati tako, da ne ogroža sosednjih nepremičnin ali tretjih oseb. Pri etažni lastnini se vzdrževanje skupnih delov ureja z načrtom vzdrževanja in upravljanja.",
+        src: [{ law: "SPZ", art: "76. člen" }]
+      },
+      {
+        id: "spz-11",
+        q: "Kaj je ureditev meje?",
+        a: "Če je meja sporna, lahko vsak lastnik sosednjega zemljišča zahteva, da se meja uredi. Meja se uredi po zadnji mirni posesti, ali po katastrski meji, ali po pravičnem preudarku sodišča. Ureditev meje se izvede v nepravdnem postopku.",
+        src: [{ law: "SPZ", art: "77. člen" }]
+      },
+      {
+        id: "spz-12",
+        q: "Kaj je nujna pot?",
+        a: "Lastnik nepremičnine, ki nima dostopa do javne ceste ali je ta povezan z nesorazmernimi stroški, lahko zahteva, da mu sosed dovoli pot čez svojo nepremičnino. Ustanovi se v nepravdnem postopku. Sodišče odloči ob upoštevanju prometnih potreb, manjše obremenitve za soseda in plačilu nadomestila. Nujna pot preneha, ko razlog zanjo odpade.",
+        src: [{ law: "SPZ", art: "88.–90. člen" }]
+      },
+      {
+        id: "spz-13",
+        q: "Kaj je etažna lastnina?",
+        a: "Etažna lastnina je lastnina posameznega dela zgradbe (stanovanja, poslovnega prostora) in solastnina skupnih delov. Skupni deli so: temelji, nosilne stene, streha, stopnišča, dvigala, skupne instalacije. Etažna lastnina nastane s pravnim poslom (pogodba o oblikovanju etažne lastnine), z odločbo sodišča ali na podlagi zakona. Razmerje med etažnimi lastniki ureja Stanovanjski zakon (SZ-1) za stanovanjske stavbe.",
+        src: [{ law: "SPZ", art: "105.–106. člen" }]
+      },
+      {
+        id: "spz-14",
+        q: "Kaj so povezane nepremičnine?",
+        a: "Povezane nepremičnine so nepremičnine, ki so funkcionalno ali prostorsko povezane (npr. stavba s pripadajočim zemljiščem, garaža s stanovanjem). Vpis v zemljiško knjigo zagotavlja, da se ob prenosu ene nepremičnine prenesejo tudi pravice na povezanih nepremičninah.",
+        src: [{ law: "SPZ", art: "127.a–127.č člen" }]
+      },
+      {
+        id: "spz-15",
+        q: "Kaj je služnost?",
+        a: "Služnost je stvarna pravica, ki daje upravičencu pravico do uporabe tuje nepremičnine (stvarna služnost) ali pravico do določenega ravnanja (osebna služnost). Stvarne služnosti so: pravica prehoda, vožnje, vodenja, gradnje in podobno. Osebne služnosti so: užitek, raba, služnost stanovanja. Služnost se ustanovi z vpisom v zemljiško knjigo na podlagi pravnega posla ali sodne odločbe.",
+        src: [{ law: "SPZ", art: "210.–216. člen" }]
+      },
+      {
+        id: "spz-16",
+        q: "Kaj je priključitev na komunalno omrežje?",
+        a: "Lastnik nepremičnine ima pravico zahtevati priključitev na komunalno omrežje (vodovod, kanalizacija, elektrika, plin) pod pogoji, ki jih določa zakon. Priključitev se izvede na stroške lastnika nepremičnine. Upravljavec omrežja ne sme odreči priključitve, če so izpolnjeni tehnični pogoji.",
+        src: [{ law: "SPZ", art: "91. člen" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 3. AVTORSKE PRAVICE (ZASP)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "zasp",
+    title: "3. Avtorske pravice (ZASP)",
+    subtitle: "Zakon o avtorski in sorodnih pravicah",
+    icon: "©️",
+    color: "#059669",
+    lawKey: "ZASP",
+    questions: [
+      {
+        id: "zasp-1",
+        q: "Kdo je avtor?",
+        a: "Avtor je fizična oseba, ki je ustvarila avtorsko delo. Le fizična oseba je lahko avtor — pravne osebe (podjetja, zavodi) ne morejo biti avtorji, lahko pa so imetniki materialnih avtorskih pravic (po prenosu). Za avtorja velja tisti, katerega ime je na običajen način navedeno na delu.",
+        src: [{ law: "ZASP", art: "10.–11. člen" }]
+      },
+      {
+        id: "zasp-2",
+        q: "Koga običajno poimenujemo kot imetnika avtorskih pravic?",
+        a: "Imetnik avtorskih pravic je praviloma avtor sam. Moralne avtorske pravice so neprenosljive in trajno pripadajo avtorju. Materialne avtorske pravice pa so prenosljive — imetnik je lahko fizična ali pravna oseba, ki je pravice pridobila s pogodbo, zakonom ali dedovanjem. Pri delih, ustvarjenih v delovnem razmerju, se materialne pravice pogosto prenesejo na delodajalca (14. člen ZASP).",
+        src: [{ law: "ZASP", art: "10.–14. člen" }]
+      },
+      {
+        id: "zasp-3",
+        q: "Kaj avtorju zagotavljajo materialne in kaj moralne avtorske pravice?",
+        a: "MORALNE pravice varujejo avtorjevo duhovno vez z delom: (1) pravica prve objave — avtor odloči, kdaj in kako bo delo objavljeno; (2) pravica priznanja avtorstva — pravica biti priznan kot avtor; (3) pravica spoštovanja dela — avtor se upre skazitvi ali posegom; (4) pravica skesanja — preklic prenosa pravic (z odškodnino). MATERIALNE pravice varujejo premoženjske interese: pravica reproduciranja, distribuiranja, dajanja v najem, javnega prikazovanja, predelave, priobčitve javnosti itd.",
+        src: [{ law: "ZASP", art: "16.–33. člen" }]
+      },
+      {
+        id: "zasp-4",
+        q: "Ali je posamezno moralno avtorsko pravico mogoče prenesti na naročnika s pogodbo?",
+        a: "Ne. Moralne avtorske pravice so neprenosljive in neodtujljive — ostanejo pri avtorju do smrti in jih ni mogoče prenesti s pogodbo. Avtor pa se lahko zaveže, da določenih moralnih pravic ne bo izvrševal (npr. ne bo zahteval navedbe imena), a se takemu zavezi lahko kadarkoli odpove.",
+        src: [{ law: "ZASP", art: "16.–20. člen" }]
+      },
+      {
+        id: "zasp-5",
+        q: "Katere materialne avtorske pravice so najpomembnejše za avtorje arhitekturnih del?",
+        a: "Za arhitekte so najpomembnejše: (1) pravica reproduciranja (23. člen) — kopiranje načrtov, ponovitev projekta; (2) pravica predelave (33. člen) — spremembe, dopolnitve projekta; (3) pravica distribuiranja (24. člen) — dajanje izvodov v promet; (4) pravica javnega prikazovanja (29. člen) — razstave projektov. Posebej pomembno: ponovna uporaba istega projekta za drug objekt brez soglasja arhitekta je kršitev avtorske pravice.",
+        src: [{ law: "ZASP", art: "5., 23., 24., 29., 33. člen" }]
+      },
+      {
+        id: "zasp-6",
+        q: "Ali lahko projektant dele načrtov v zvezi s katerimi je na naročnika izključno prenesel pravico dajanja na voljo javnosti, za tem objavi na svoji spletni strani?",
+        a: "Če je projektant izključno prenesel materialno pravico priobčitve javnosti (dajanja na voljo javnosti) na naročnika, te pravice sam ne sme več izvrševati. Objava na lastni spletni strani bi bila kršitev pogodbe. Vendar: moralne pravice (pravica avtorstva) ostanejo pri projektantu — naročnik ga mora navesti kot avtorja. Projektant pa obdrži pravico do uporabe dela za lastno promocijo (referenčno delo), če pogodba tega izrecno ne prepoveduje.",
+        src: [{ law: "ZASP", art: "70.–75. člen" }]
+      },
+      {
+        id: "zasp-7",
+        q: "Kaj pa če bi to pravico na naročnika prenesel neizključno?",
+        a: "Pri neizključnem prenosu naročnik pridobi pravico uporabe, avtor pa obdrži pravico, da isto pravico podeli tudi drugim ali jo sam izvršuje. Torej: projektant lahko dela objavi na svoji spletni strani, ker z neizključnim prenosom ni izgubil lastne pravice do uporabe. Več oseb lahko hkrati izvršuje isto materialno avtorsko pravico.",
+        src: [{ law: "ZASP", art: "74. člen" }]
+      },
+      {
+        id: "zasp-8",
+        q: "Kako se pri arhitekturnih delih običajno realizira pravica reproduciranja?",
+        a: "Pravica reproduciranja se pri arhitekturnih delih realizira kot: (1) kopiranje načrtov in projektne dokumentacije; (2) izvedba objekta po načrtih (gradnja je reproduciranje arhitekturnega dela); (3) ponovna uporaba projekta za drug objekt; (4) fotografiranje in objava fotografij objekta (za komercialne namene). Arhitekt mora dati soglasje za vsako reproduciranje, razen v primerih zakonskih izjem (prosta uporaba za osebne namene, citati).",
+        src: [{ law: "ZASP", art: "23. člen" }]
+      },
+      {
+        id: "zasp-9",
+        q: "Kaj po zakonu uživa širše avtorskopravno varstvo — arhitekturni načrti ali zgrajeni arhitekturni objekti?",
+        a: "Oba uživata avtorskopravno varstvo — ZASP v 5. členu izrecno navaja »arhitekturna dela, kot npr. skice, načrti ter izvedeni objekti s področja arhitekture, urbanizma in krajinske arhitekture«. V praksi pa je varstvo načrtov lažje uveljavljivo (jasna avtorska identifikacija), medtem ko je varstvo izvedenih objektov omejeno z nekaterimi izjemami (npr. 55. člen — svoboda panorame: dovoljeno je fotografiranje del, ki so trajno na javnih mestih).",
+        src: [{ law: "ZASP", art: "5., 55. člen" }]
+      },
+      {
+        id: "zasp-10",
+        q: "Kakšna je dolžnost člana ZAPS v razmerju do drugega člana ZAPS po Kodeksu poklicne etike članov ZAPS, nagrajenega npr. z Zlatim svinčnikom?",
+        a: "Člen ZAPS mora spoštovati avtorsko delo drugih članov. Kodeks poklicne etike ZAPS zavezuje člane k: (1) spoštovanju avtorskih pravic kolegov; (2) nedopustnosti prevzemanja ali kopiranja tujih projektov brez soglasja; (3) korektnim odnosom pri prevzemu projekta drugega arhitekta; (4) navedbi avtorja izvirnega projekta pri rekonstrukcijah ali predelavah. Prejemnik nagrade (npr. Zlati svinčnik) uživa enako avtorskopravno varstvo — nagrada ne spreminja obsega pravic.",
+        src: [{ law: "ZASP", art: "12. člen" }, { law: "ZAID", art: "Kodeks poklicne etike ZAPS" }]
+      },
+      {
+        id: "zasp-11",
+        q: "Kako pa to ureja Zakon o avtorski in sorodnih pravicah?",
+        a: "ZASP ureja avtorskopravno varstvo arhitekturnih del celovito: avtorska dela so varovana od nastanka (ni treba registracije); moralne pravice so neprenosljive; materialne pravice trajajo 70 let po smrti avtorja; kršitev avtorskih pravic ima civilnopravne (odškodnina, prepoved) in kazenskopravne posledice. Posebna določba 12. člena Kodeksa poklicne etike članov ZAPS pa določa dodatne dolžnosti med člani.",
+        src: [{ law: "ZASP", art: "5., 16.–33., 163.–180. člen" }]
+      },
+      {
+        id: "zasp-12",
+        q: "Ali so načrti strojnih inštalacij avtorsko delo?",
+        a: "Da, če izpolnjujejo pogoj individualnosti — to je, če so individualne intelektualne stvaritve. Načrti strojnih instalacij so praviloma varovani kot avtorska dela s področja arhitekture/tehnike. Tehnični načrti, ki sledijo zgolj standardom in nimajo individualne ustvarjalne note, pa morda ne dosegajo praga varovanja (»threshold of originality«).",
+        src: [{ law: "ZASP", art: "5. člen" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 4. GRADBENI ZAKON (GZ-1)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "gz1",
+    title: "4. Gradbeni zakon (GZ-1)",
+    subtitle: "Ureja pogoje za graditev objektov in druga vprašanja, povezana z graditvijo objektov",
+    icon: "🏗️",
+    color: "#dc2626",
+    lawKey: "GZ-1",
+    questions: [
+      {
+        id: "gz1-1",
+        q: "Kaj pomeni zaščita javnega interesa pri graditvi objektov?",
+        a: "Javni interes pri graditvi objektov pomeni, da morajo biti vsi objekti načrtovani in zgrajeni tako, da izpolnjujejo bistvene zahteve (27. člen): mehansko odpornost in stabilnost, varnost pred požarom, higiensko in zdravstveno zaščito ter zaščito okolja, varnost pri uporabi, zaščito pred hrupom, varčevanje z energijo, univerzalno graditev in uporabo objektov, trajnostno rabo naravnih virov. Te zahteve varujejo zdravje, varnost in kakovost življenja vseh ljudi.",
+        src: [{ law: "GZ-1", art: "1., 27. člen" }]
+      },
+      {
+        id: "gz1-2",
+        q: "Na kakšen način se uresničuje namen gradbenega zakona?",
+        a: "Namen GZ-1 se uresničuje z: (1) določitvijo pogojev za graditev objektov; (2) klasifikacijo in razvrščanjem objektov; (3) postopki izdaje gradbenih dovoljenj; (4) nadzorom nad gradnjo (inšpekcija); (5) obveznostjo projektne dokumentacije; (6) zahtevami za udeležence v gradnji (investitor, projektant, izvajalec, nadzornik); (7) bistvene zahteve za objekte; (8) evidentirano uporabo objektov (uporabno dovoljenje).",
+        src: [{ law: "GZ-1", art: "1.–5. člen" }]
+      },
+      {
+        id: "gz1-3",
+        q: "S čem morajo biti objekti skladni, kaj morajo izpolnjevati, kaj pomeni da so evidentirani?",
+        a: "Objekti morajo biti skladni s: prostorskimi izvedbenimi akti (OPN, OPPN) in gradbenimi dovoljenji. Izpolnjevati morajo: bistvene zahteve (8 sklopov iz 27. člena). Evidentirani pomeni: (1) imajo gradbeno dovoljenje in uporabno dovoljenje; (2) so vpisani v kataster nepremičnin; (3) imajo določeno klasifikacijo in namembnost.",
+        src: [{ law: "GZ-1", art: "5.–7., 27. člen" }]
+      },
+      {
+        id: "gz1-4",
+        q: "Kaj pomeni izraz »objekt« (3. člen)?",
+        a: "Objekt je stavba, gradbeni inženirski objekt ali drug gradbeni poseg, ki je namenjen prebivanju, opravljanju dejavnosti ali drugemu namenu. Stavba je objekt z enim ali več prostori, v katere človek lahko vstopi. Gradbeni inženirski objekt je objekt, namenjen zadovoljevanju potreb, ki niso prebivanje ali opravljanje dejavnosti v stavbah (ceste, mostovi, vodovodi ipd.).",
+        src: [{ law: "GZ-1", art: "3. člen" }]
+      },
+      {
+        id: "gz1-5",
+        q: "Kaj je to klasifikacija objektov po CC-SI in kdo to predpiše?",
+        a: "CC-SI (Classification of Types of Constructions — Slovenian version) je enotna klasifikacija vrst objektov, ki temelji na evropski klasifikaciji CC. Predpiše jo minister, pristojen za graditev. Objekti se razvrščajo po namembnosti uporabe (stanovanjski, nestanovanjski, inženirski) in po zahtevnosti (zahtevni, manj zahtevni, nezahtevni, enostavni). Klasifikacija je podlaga za določitev obsega projektne dokumentacije, vrste dovoljenja in višine pristojbin.",
+        src: [{ law: "GZ-1", art: "3., 5. člen" }, { law: "GZ-1", art: "Uredba o razvrščanju objektov (UL RS 96/22)" }]
+      },
+      {
+        id: "gz1-6",
+        q: "Kakšen je način postavitve začasnih objektov po GZ-1? Kateri podzakonski predpis to ureja?",
+        a: "Začasni objekti so namenjeni začasni uporabi in morajo biti odstranjeni po preteku določenega roka. Za začasne objekte je potrebno gradbeno dovoljenje z omejenim rokom veljavnosti. Podzakonski predpis, ki podrobneje ureja pogoje: Uredba o razvrščanju objektov (Uradni list RS, št. 96/22). Začasni objekti so zlasti: gradbišča, prireditveni objekti, sezonski objekti.",
+        src: [{ law: "GZ-1", art: "3., 9. člen" }]
+      },
+      {
+        id: "gz1-7",
+        q: "Gradnja z gradbenim dovoljenjem in prijava začetka gradnje",
+        a: "Za gradnjo zahtevnih in manj zahtevnih objektov je potrebno gradbeno dovoljenje. Investitor mora pred začetkom gradnje: (1) pridobiti pravnomočno gradbeno dovoljenje; (2) prijaviti začetek gradnje pristojnemu upravnemu organu najmanj 8 dni pred začetkom del; (3) zagotoviti nadzor nad gradnjo; (4) imeti imenovanega odgovornega vodjo del. Prijava začetka gradnje ni potrebna za enostavne in nezahtevne objekte.",
+        src: [{ law: "GZ-1", art: "62.–64. člen" }]
+      },
+      {
+        id: "gz1-8",
+        q: "Gradnja na podlagi prijave začetka gradnje brez gradbenega dovoljenja",
+        a: "Za nezahtevne objekte ni potrebno gradbeno dovoljenje — zadostuje prijava začetka gradnje. Za enostavne objekte pa ni potrebna niti prijava niti dovoljenje, ampak morajo biti skladni s prostorskimi akti. Pogoji: objekt mora ustrezati merilom za razvrščanje med nezahtevne/enostavne (velikost, višina, namembnost) po Uredbi o razvrščanju objektov.",
+        src: [{ law: "GZ-1", art: "8.–9. člen" }]
+      },
+      {
+        id: "gz1-9",
+        q: "Gradnja brez gradbenega dovoljenja (pogoji za izvedbo manjše rekonstrukcije)",
+        a: "Manjša rekonstrukcija je rekonstrukcija, pri kateri se ne posega v konstrukcijske elemente in ne spreminja zunanjega videza objekta. Za manjšo rekonstrukcijo ni potrebno gradbeno dovoljenje, potrebna pa je dokumentacija za izvedbo (načrt). Pogoji: poseg ne sme vplivati na izpolnjevanje bistvenih zahtev, ne sme spreminjati namembnosti in mora biti skladen s prostorskimi akti.",
+        src: [{ law: "GZ-1", art: "8. člen" }]
+      },
+      {
+        id: "gz1-10",
+        q: "Začetek uporabe objektov",
+        a: "Objekt se sme začeti uporabljati po pridobitvi uporabnega dovoljenja. Za pridobitev uporabnega dovoljenja mora investitor: (1) pridobiti izjavo nadzornika, da je objekt zgrajen skladno z gradbenim dovoljenjem; (2) predložiti dokazilo o zanesljivosti objekta (DZO); (3) za zahtevne objekte: izvesti tehnični pregled. Uporabno dovoljenje za nezahtevne objekte ni potrebno.",
+        src: [{ law: "GZ-1", art: "68.–76. člen" }]
+      },
+      {
+        id: "gz1-11",
+        q: "Pristojnost upravnih organov za izdajo odločb in evidentiranje prijav začetka",
+        a: "Pristojni organi: (1) Upravna enota — za izdajo gradbenega dovoljenja za manj zahtevne in nezahtevne objekte; (2) Ministrstvo za naravne vire in prostor — za zahtevne objekte in objekte s čezmejnim vplivom; (3) Pristojni občinski organ — za evidentiranje prijav začetka gradnje. Za inšpekcijski nadzor je pristojna gradbena inšpekcija (IRSOP).",
+        src: [{ law: "GZ-1", art: "10.–13. člen" }]
+      },
+      {
+        id: "gz1-12",
+        q: "Pristojnost organov za opravljanje inšpekcijskega nadzora",
+        a: "Gradbeni inšpekcijski nadzor izvaja Inšpektorat RS za okolje in prostor (IRSOP). Gradbeni inšpektor nadzira: (1) ali se gradi v skladu z gradbenim dovoljenjem; (2) ali objekti izpolnjujejo bistvene zahteve; (3) ali se uporabljajo brez uporabnega dovoljenja (nelegalna gradnja); (4) ali so izpolnjeni pogoji za udeležence v gradnji. Inšpektor lahko odredi ustavitev gradnje, odstranitev objekta ali druge sanacijske ukrepe.",
+        src: [{ law: "GZ-1", art: "84.–100. člen" }]
+      },
+      {
+        id: "gz1-13",
+        q: "Udeleženci pri graditvi objektov: investitor, projektant, nadzornik, izvajalec — naloge in odgovornosti",
+        a: "INVESTITOR: naročnik gradnje, zagotovi financiranje, pridobi dovoljenja, imenuje nadzornika. PROJEKTANT: pravna ali fizična oseba, ki izdeluje projektno dokumentacijo; odgovorni projektant je PA/PI, ki je imenovan za posamezen načrt. NADZORNIK: pravna ali fizična oseba, ki izvaja nadzor nad gradnjo; mora biti neodvisen od izvajalca. IZVAJALEC: izvaja gradbena dela; mora imeti ustrezne kvalifikacije, zavarovanje odgovornosti; imenuje odgovornega vodjo del.",
+        src: [{ law: "GZ-1", art: "25.–36. člen" }]
+      },
+      {
+        id: "gz1-14",
+        q: "Vodenje gradnje — vodja del, pristojnost IZS, OZS, GZS",
+        a: "Odgovorni vodja del vodi in koordinira izvedbo del na gradbišču. Za zahtevne objekte mora biti pooblaščeni inženir (PI). Pristojnosti zbornic: IZS (Inženirska zbornica Slovenije) — imenik pooblaščenih inženirjev, ZAPS — imenik pooblaščenih arhitektov, OZS/GZS — register izvajalcev gradbenih del. Izvajalec mora biti vpisan v ustrezen register.",
+        src: [{ law: "GZ-1", art: "33.–36. člen" }, { law: "ZAID", art: "4.–6. člen" }]
+      },
+      {
+        id: "gz1-15",
+        q: "Bistvene zahteve za objekte — katere so in kako se izpolnjujejo?",
+        a: "GZ-1 določa 8 bistvenih zahtev (27. člen): (1) mehanska odpornost in stabilnost; (2) varnost pred požarom; (3) higienska in zdravstvena zaščita ter zaščita okolja; (4) varnost pri uporabi; (5) zaščita pred hrupom; (6) varčevanje z energijo, ohranjanje toplote in raba obnovljivih virov energije; (7) univerzalna graditev in uporaba objektov; (8) trajnostna raba naravnih virov. Izpolnjujejo se z upoštevanjem tehničnih smernic, standardov in pravilnikov.",
+        src: [{ law: "GZ-1", art: "27. člen" }]
+      },
+      {
+        id: "gz1-16",
+        q: "Standardizirani opisi del, popisi materialov in opreme — tehnične smernice in drugi normativni dokumenti",
+        a: "Projektna dokumentacija mora vsebovati standardizirane opise del, popise materialov in opreme. Tehnične smernice (TSG) določajo način izpolnjevanja bistvenih zahtev. Uporabljajo se tudi: SIST standardi (slovenski), EN standardi (evropski), Evrokodi (za konstrukcije). Popisi del se izdelajo po sistemu normiranih opisov (npr. po standardih za posamezna področja).",
+        src: [{ law: "GZ-1", art: "27., 37.–40. člen" }]
+      },
+      {
+        id: "gz1-17",
+        q: "Zahteve za vgradnjo materialov in proizvodov",
+        a: "V objekte se smejo vgrajevati le gradbeni proizvodi, ki so skladni z zahtevami Uredbe (EU) 305/2011 (CPR — Construction Products Regulation) in imajo izjavo o lastnostih (DoP) ter oznako CE. Projektant mora v projektni dokumentaciji predpisati materiale in proizvode, ki izpolnjujejo zahteve za konkretno uporabo. Izvajalec je odgovoren za vgradnjo ustreznih materialov.",
+        src: [{ law: "GZ-1", art: "27., 29. člen" }]
+      },
+      {
+        id: "gz1-18",
+        q: "Projektna in druga dokumentacija — vrste in obseg",
+        a: "GZ-1 pozna naslednje vrste dokumentacije: (1) Dokumentacija za gradbeno dovoljenje (DGD); (2) Projektna dokumentacija za izvedbo gradnje (PZI); (3) Projektna dokumentacija izvedenih del (PID); (4) Dokazilo o zanesljivosti objekta (DZO). Vsebino in obliko podrobneje ureja Pravilnik o projektni in drugi dokumentaciji (UL RS, št. 30/23). Projektna dokumentacija mora vsebovati: tehnično poročilo, grafične prikaze, popise del.",
+        src: [{ law: "GZ-1", art: "37.–40. člen" }]
+      },
+      {
+        id: "gz1-19",
+        q: "Postopek izdaje gradbenega dovoljenja — zahteva, mnenja, stranke, ugotovitveni postopek",
+        a: "Postopek: (1) Investitor vloži zahtevo za izdajo GD z DGD dokumentacijo; (2) Upravni organ preveri popolnost; (3) Pridobijo se mnenja pristojnih mnenjedajalcev (30 dni); (4) Stranke v postopku: investitor, lastniki sosednjih zemljišč (če poseg vpliva nanje), občina; (5) Ugotovitveni postopek — organ ugotovi skladnost z OPN/OPPN in bistvene zahteve; (6) Izdaja odločbe — GD ali zavrnitev. Pritožba zoper GD je možna v 8 dneh.",
+        src: [{ law: "GZ-1", art: "42.–61. člen" }]
+      },
+      {
+        id: "gz1-20",
+        q: "Gradbeno dovoljenje za del objekta, pravna sredstva, veljavnost, razveljavitev",
+        a: "GD se lahko izda za posamezen del objekta, če ta del predstavlja zaključeno celoto. Pravna sredstva: pritožba (8 dni), upravni spor. Veljavnost GD: (1) gradnja se mora začeti v 5 letih od pravnomočnosti; (2) če se gradnja prekine za več kot 5 let, GD preneha veljati. Razveljavitev: po uradni dolžnosti, če se ugotovi, da je bilo GD izdano na podlagi neresničnih podatkov ali v nasprotju z zakonom.",
+        src: [{ law: "GZ-1", art: "47., 54.–61. člen" }]
+      },
+      {
+        id: "gz1-21",
+        q: "Sprememba gradbenega dovoljenja, sprememba investitorja",
+        a: "Sprememba GD je potrebna, kadar se med gradnjo spremenijo bistveni pogoji (namembnost, gabariti, konstrukcija). Postopek: nova ali dopolnjena DGD dokumentacija, mnenja. Sprememba investitorja: se prijavi pristojnemu organu; GD se prenese na novega investitorja z odločbo. Sprememba investitorja ne zahteva novega postopka za GD.",
+        src: [{ law: "GZ-1", art: "55.–56. člen" }]
+      },
+      {
+        id: "gz1-22",
+        q: "Postopek izdaje integralnega gradbenega dovoljenja",
+        a: "Integralno GD združuje presojo vplivov na okolje (PVO) in gradbeno dovoljenje v en postopek. Potrebno je za objekte, ki imajo lahko pomemben vpliv na okolje (po Uredbi o posegih, za katere je treba izvesti PVO). Postopek vključuje: okoljsko poročilo, javno razgrnitev, mnenja organizacij, presojo sprejemljivosti. Pristojno je ministrstvo.",
+        src: [{ law: "GZ-1", art: "57.–61. člen" }]
+      },
+      {
+        id: "gz1-23",
+        q: "Izvajanje gradnje, obveznost izdelave projektne dokumentacije",
+        a: "Gradnja se sme izvajati le na podlagi pravnomočnega GD in z ustrezno PZI dokumentacijo. Obveznosti: izvajalec mora imeti PZI na gradbišču; vodja del mora voditi gradbeni dnevnik; nadzornik preverja skladnost izvedbe s PZI; morebitna odstopanja je treba dokumentirati in pridobiti spremembo GD, če gre za bistvena odstopanja.",
+        src: [{ law: "GZ-1", art: "62.–67. člen" }]
+      },
+      {
+        id: "gz1-24",
+        q: "Obveznost imenovanja nadzornika in obveznost izvedbe zakoličbe, prijava pričetka gradnje",
+        a: "Investitor mora pred začetkom gradnje: (1) imenovati nadzornika (razen pri enostavnih in nezahtevnih objektih); (2) zagotoviti zakoličbo (geodetsko zakoličbo objekta na terenu); (3) prijaviti začetek gradnje pristojnemu organu najmanj 8 dni pred začetkom del. Nadzornik mora biti neodvisen od izvajalca. Zakoličba se izvede na podlagi GD in jo opravi geodet.",
+        src: [{ law: "GZ-1", art: "63.–66. člen" }]
+      },
+      {
+        id: "gz1-25",
+        q: "Nadzor nad gradnjo",
+        a: "Nadzor obsega: (1) preverjanje skladnosti izvedbe s PZI in GD; (2) preverjanje kakovosti vgrajenih materialov; (3) preverjanje izpolnjevanja bistvenih zahtev; (4) nadzor nad vodenjem gradbenega dnevnika; (5) pravočasno obveščanje investitorja o morebitnih odstopanjih. Nadzornik vodi knjigo nadzora, potrjuje situacije in sodeluje pri tehničnem pregledu.",
+        src: [{ law: "GZ-1", art: "78.–83. člen" }]
+      },
+      {
+        id: "gz1-26",
+        q: "Ureditev in označitev gradbišča",
+        a: "Gradbišče mora biti urejeno in označeno v skladu s predpisi o varnosti in zdravju pri delu. Obveznosti: (1) gradbišče mora biti ograjeno; (2) na vidnem mestu mora biti tabla z osnovnimi podatki (investitor, projektant, izvajalec, nadzornik, GD); (3) zagotovljeni morajo biti varnostni ukrepi; (4) dostop mora biti urejen za intervencijska vozila.",
+        src: [{ law: "GZ-1", art: "64.–65. člen" }]
+      },
+      {
+        id: "gz1-27",
+        q: "Dopustna manjša odstopanja od gradbenega dovoljenja",
+        a: "Manjša odstopanja so tista, ki ne vplivajo na izpolnjevanje bistvenih zahtev, ne spreminjajo namembnosti, velikosti ali oblike objekta in ne poslabšujejo pogojev sosednjim nepremičninam. Primeri: manjše spremembe notranjih razporeditev, zamenjava materialov z enakovrednimi, manjše prilagoditve instalacij. Za bistvena odstopanja je potrebna sprememba GD.",
+        src: [{ law: "GZ-1", art: "66. člen" }]
+      },
+      {
+        id: "gz1-28",
+        q: "Legalizacija objektov — uporabno dovoljenje za obstoječi objekt",
+        a: "Za objekte, zgrajene pred 1. 1. 1998 brez ustreznih dovoljenj, je mogoča legalizacija z uporabnim dovoljenjem za obstoječi objekt. Pogoji: objekt mora biti skladen s prostorskimi akti in ne sme ogrožati zdravja, življenja ali okolja. Za objekte, grajene po 1. 1. 1998 brez GD, je legalizacija možna le z naknadnim GD (če so izpolnjeni pogoji). Inšpekcijski ukrepi se lahko odložijo za čas legalizacije.",
+        src: [{ law: "GZ-1", art: "117.–122. člen" }]
+      },
+      {
+        id: "gz1-29",
+        q: "Izvršilni predpisi in začetek veljavnosti in uporabe zakona",
+        a: "GZ-1 pooblašča ministra za izdajo izvršilnih predpisov (pravilnikov, uredb) o: razvrščanju objektov, projektni dokumentaciji, tehničnih smernicah za bistvene zahteve, obliki gradbenih dovoljenj ipd. GZ-1 je začel veljati 1. junija 2022 in nadomešča prejšnji GZ (2017). Prehodne določbe urejajo postopke, začete pred uveljavitvijo novega zakona.",
+        src: [{ law: "GZ-1", art: "123.–134. člen" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 5. ZAKON O UREJANJU PROSTORA (ZUreP-3)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "zurep3",
+    title: "5. Zakon o urejanju prostora (ZUreP-3)",
+    subtitle: "Določa cilje, načela in pravila urejanja prostora",
+    icon: "🗺️",
+    color: "#0891b2",
+    lawKey: "ZUreP-3",
+    questions: [
+      {
+        id: "zurep-1",
+        q: "Izrazi (3. člen) — ključni pojmi za arhitekta",
+        a: "Ključni pojmi: BILANCA POVRŠIN — izračun nepozidanih stavbnih zemljišč po namembnosti. BRUTO TLORISNA POVRŠINA — po predpisu o izračunu površin stavb. GRADBENA PARCELA — zemljišče za redno rabo objekta. JAVNA POVRŠINA — odprta ureditev namenjena splošni rabi. KRAJINA — območje s prepoznavnimi značilnostmi. NASELJE — območje z najmanj 10 stanovanjskimi stavbami. NAMENSKA RABA — raba določena s prostorskimi akti. STAVBNO ZEMLJIŠČE — zemljišče namenjeno gradnji.",
+        src: [{ law: "ZUreP-3", art: "3. člen" }]
+      },
+      {
+        id: "zurep-2",
+        q: "Racionalna raba prostora (21. člen)",
+        a: "Racionalna raba prostora pomeni učinkovito uporabo prostora z načeli: (1) prednost prenove, sanacije in zgostitve obstoječih stavbnih površin pred širitvijo na nova območja; (2) zagotavljanje kompaktnih poselitev; (3) varovanje kmetijskih in gozdnih zemljišč; (4) revitalizacija opuščenih površin (brownfield); (5) omejevanje razpršene gradnje. Prostorski akti morajo pri načrtovanju upoštevati te zahteve.",
+        src: [{ law: "ZUreP-3", art: "21. člen" }]
+      },
+      {
+        id: "zurep-3",
+        q: "Ohranjanje posamične poselitve (32. člen)",
+        a: "Ohranjanje posamične poselitve pomeni ohranjanje vzorca razpršene poselitve na območjih, kjer je ta zgodovinsko značilna (npr. samotne kmetije, raztresena poselitev). Prostorski akti morajo omogočiti: obnovo in nadomestitev obstoječih objektov, manjše širitve za potrebe kmetijstva, ohranjanje krajinskega vzorca. Ni pa dovoljeno načrtovanje novih razpršenih naselij.",
+        src: [{ law: "ZUreP-3", art: "32. člen" }]
+      },
+      {
+        id: "zurep-4",
+        q: "Določanje namenske rabe prostora (37. člen)",
+        a: "Namenska raba prostora se določa z občinskim prostorskim načrtom (OPN). Osnovne kategorije: stavbna zemljišča, kmetijska zemljišča, gozdna zemljišča, vodna zemljišča, druga zemljišča. Podrobnejša namenska raba se določa v OPPN. Sprememba namenske rabe zahteva spremembo OPN ali OPPN po predpisanem postopku.",
+        src: [{ law: "ZUreP-3", art: "37. člen" }]
+      },
+      {
+        id: "zurep-5",
+        q: "Določanje prostorsko izvedbenih pogojev (38. člen)",
+        a: "Prostorsko izvedbeni pogoji (PIP) se določajo v OPN in OPPN. Obsegajo: vrsto dopustnih objektov, lego objektov na parceli, velikost (tloris, višina, etažnost), oblikovanje (streha, fasada, materiali), ureditev okolice, priključitev na infrastrukturo, parkirne normative, odmike od parcelnih mej in objektov, zelene površine.",
+        src: [{ law: "ZUreP-3", art: "38. člen" }]
+      },
+      {
+        id: "zurep-6",
+        q: "Lokacijska preveritev (134.–140. člen)",
+        a: "Lokacijska preveritev je postopek, ki omogoča individualno obravnavo določenega prostorskega posega brez spremembe OPN. Tri vrste: (1) za namen individualne odstopanja od PIP; (2) za namen začasne rabe prostora; (3) za namen omogočanja posamične poselitve. Postopek: pobuda investitorja → strokovne podlage → javna objava → sklep občinskega sveta. Lokacijska preveritev se uporabi, kadar predviden poseg ni v celoti skladen s PIP, a je prostorsko sprejemljiv.",
+        src: [{ law: "ZUreP-3", art: "134.–140. člen" }]
+      },
+      {
+        id: "zurep-7",
+        q: "Opremljeno stavbno zemljišče (159. člen)",
+        a: "Opremljeno stavbno zemljišče je zemljišče, ki je komunalno opremljeno: ima dostop do javne ceste, priključek na vodovod, kanalizacijo (ali ustrezen način odvajanja), elektroenergetsko omrežje in po potrebi na plinsko ali toplovodno omrežje. Občina z odlokom določi pogoje za komunalno opremljenost. Komunalni prispevek se plača pred izdajo GD.",
+        src: [{ law: "ZUreP-3", art: "159. člen" }]
+      },
+      {
+        id: "zurep-8",
+        q: "Samooskrba zemljišča (159. člen) in izboljšanje opremljenosti zemljišča (161. člen)",
+        a: "Samooskrba: na območjih, kjer ni javnega komunalnega omrežja, se lahko zagotovi individualna oskrba (lastna vodna oskrba, mala čistilna naprava). Izboljšanje opremljenosti: občina načrtuje novo ali izboljšano komunalno opremo s programom opremljanja. Stroški se financirajo s komunalnim prispevkom investitorjev in iz občinskega proračuna.",
+        src: [{ law: "ZUreP-3", art: "159., 161. člen" }]
+      },
+      {
+        id: "zurep-9",
+        q: "Komunalni prispevek (164. člen)",
+        a: "Komunalni prispevek je plačilo investitorja ob priključitvi na komunalno infrastrukturo. Odmeri ga občina z odločbo pred izdajo GD. Višina se izračuna na podlagi programa opremljanja in obsega novo gradbeno parcelo ter bruto tlorisno površino objekta. Oprostitve: za gradnjo javne infrastrukture in v drugih primerih, ki jih določa zakon.",
+        src: [{ law: "ZUreP-3", art: "164., 226.–244., 332.–333. člen" }]
+      },
+      {
+        id: "zurep-10",
+        q: "Pozidava in poseljena zemljišča (189. člen) — gradbena parcela (190.–195. člen)",
+        a: "Gradbena parcela je zemljišče, na katerem stoji oz. je predviden objekt, vključno s pripadajočim funkcionalnim zemljiščem. Merila za določitev: organizacija parcele glede na namembnost, zmogljivost stavbnih zemljišč, zagotovitev dostopa, odmiki, zelene površine, komunalna oprema. Gradbeno parcelo se določi v GD postopku ali OPPN.",
+        src: [{ law: "ZUreP-3", art: "189.–195. člen" }]
+      },
+      {
+        id: "zurep-11",
+        q: "Lokacijska informacija (279. člen)",
+        a: "Lokacijska informacija je dokument, ki ga izda občina na zahtevo stranke. Vsebuje podatke o: namenski rabi zemljišča, prostorsko izvedbenih pogojih, načrtovanih prostorskih ureditvah, morebitnih prepovedih. Je informativne narave (ni upravni akt). Občina jo mora izdati v 15 dneh. Koristna za investitorje pred začetkom načrtovanja.",
+        src: [{ law: "ZUreP-3", art: "279. člen" }]
+      },
+      {
+        id: "zurep-12",
+        q: "Omogočanje legalizacije (300. člen) in občinski urbanisti (335. člen)",
+        a: "Legalizacija: ZUreP-3 omogoča legalizacijo nelegalnih gradenj pod določenimi pogoji — skladnost s prostorskimi akti, plačilo nadomestila. Občinski urbanist: občina z več kot 10.000 prebivalci mora imeti občinskega urbanista, ki svetuje pri prostorskem načrtovanju, koordinira pripravo PA in skrbi za kakovost prostorskih rešitev.",
+        src: [{ law: "ZUreP-3", art: "300., 335. člen" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 6. ZAKON O ARHITEKTURNI IN INŽENIRSKI DEJAVNOSTI (ZAID)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "zaid",
+    title: "6. ZAID",
+    subtitle: "Zakon o arhitekturni in inženirski dejavnosti",
+    icon: "📐",
+    color: "#ea580c",
+    lawKey: "ZAID",
+    questions: [
+      {
+        id: "zaid-1",
+        q: "Pogoji za pridobitev poklicnega naziva PA oz. PKA oz. PI oz. PPN",
+        a: "Pogoji za PA (pooblaščeni arhitekt): (1) izobrazba 2. stopnje s področja arhitekture; (2) najmanj 2 leti praktičnih izkušenj pod mentorstvom PA; (3) opravljen strokovni izpit. Analogno za PKA (krajinski arhitekt), PI (pooblaščeni inženir), PPN (prostorski načrtovalec). Vpis v imenik pri ZAPS (za PA, PKA) ali IZS (za PI). Poklicni naziv se pridobi z vpisom v imenik.",
+        src: [{ law: "ZAID", art: "3., 8.–10. člen" }]
+      },
+      {
+        id: "zaid-2",
+        q: "Poklicne naloge PA, PKA, PI, PPN",
+        a: "PA: arhitekturno projektiranje objektov (zlasti stavb), vodenje OPPN, nadzor nad gradnjo, izdelava izvedenskih mnenj. PKA: krajinskoarhitekturno projektiranje, vodenje OPPN za krajino. PI: gradbeno-tehnično, elektrotehniško, strojniško ali drugo inženirsko projektiranje po področjih. PPN: prostorsko načrtovanje, urejanje prostora. Vsak poklicni naziv ima zakonsko določen obseg poklicnih nalog, ki jih drugi ne smejo opravljati.",
+        src: [{ law: "ZAID", art: "4.–5. člen" }]
+      },
+      {
+        id: "zaid-3",
+        q: "Ustrezne oblike opravljanja poklicnih nalog ter pogoji za opravljanje dejavnosti",
+        a: "Poklicne naloge se opravljajo: (1) kot samostojni podjetnik; (2) v gospodarski družbi; (3) v javnem zavodu; (4) kot posameznik (fizična oseba z ustreznim poklicnim nazivom). Pogoji: vpis v imenik, zavarovana poklicna odgovornost, stalno poklicno usposabljanje, spoštovanje kodeksa poklicne etike. Pravna oseba mora imeti zaposleno ustrezno pooblaščeno osebo.",
+        src: [{ law: "ZAID", art: "6.–7. člen" }]
+      },
+      {
+        id: "zaid-4",
+        q: "Ustreznost izobrazbe in praktične izkušnje, strokovni izpit",
+        a: "Izobrazba: 2. stopnja ustrezne smeri (arhitektura za PA, krajinska arhitektura za PKA). Praktične izkušnje: najmanj 2 leti pod mentorstvom pooblaščenega strokovnjaka (mentor mora biti vpisan v imenik brez mirovanja, z najmanj 5 leti izkušenj). Strokovni izpit: organizira ga ZAPS (za PA, PKA) oz. IZS (za PI); obsega splošni del (zakonodaja) in posebni del (strokovno področje).",
+        src: [{ law: "ZAID", art: "8.–10. člen" }]
+      },
+      {
+        id: "zaid-5",
+        q: "Imenik pooblaščenih arhitektov in inženirjev",
+        a: "Imenik je javna evidenca, ki jo vodi ZAPS (za PA, PKA) in IZS (za PI). Vsebuje: osebne podatke, poklicni naziv, datum vpisa, podatke o zavarovanju odgovornosti, morebitno mirovanje. Vpis v imenik je pogoj za opravljanje poklicnih nalog. Izbris iz imenika: na lastno zahtevo, ob nespoštovanju pogojev, disciplinska sankcija.",
+        src: [{ law: "ZAID", art: "11.–17. člen" }]
+      },
+      {
+        id: "zaid-6",
+        q: "Stalno poklicno usposabljanje",
+        a: "Pooblaščeni strokovnjaki se morajo stalno poklicno usposabljati — to je pogoj za ohranitev vpisa v imenik. ZAPS in IZS določata program in obseg usposabljanja s splošnimi akti. Kršitev obveznosti stalnega usposabljanja se obravnava v disciplinskem postopku in lahko vodi v začasno mirovanje ali izbris iz imenika.",
+        src: [{ law: "ZAID", art: "6. člen" }]
+      },
+      {
+        id: "zaid-7",
+        q: "Pogoji za vpis v imenik in mirovanje",
+        a: "Pogoji za vpis: ustrezna izobrazba, praktične izkušnje, opravljen strokovni izpit, zavarovana poklicna odgovornost. Mirovanje: pooblaščenec lahko zahteva mirovanje (npr. zaradi bolezni, starševstva). Med mirovanjem ne sme opravljati poklicnih nalog. Mirovanje se vpiše v imenik. Ponovni vpis: z izpolnitvijo pogojev in dokazilom o usposobljenosti.",
+        src: [{ law: "ZAID", art: "11.–15. člen" }]
+      },
+      {
+        id: "zaid-8",
+        q: "Zavarovanje odgovornosti za škodo",
+        a: "Vsak pooblaščeni strokovnjak mora imeti zavarovano poklicno odgovornost za škodo, ki bi jo lahko povzročil pri opravljanju poklicnih nalog. Zavarovanje mora veljati ves čas vpisa v imenik. Minimalne zavarovalne vsote določi pristojni minister. Zavarovanje mora pokrivati: napake v projektiranju, nadzoru, svetovanju.",
+        src: [{ law: "ZAID", art: "7. člen" }]
+      },
+      {
+        id: "zaid-9",
+        q: "Organizacija in delovno področje zbornice (ZAPS in IZS), disciplinski postopki, strokovni nadzor",
+        a: "ZAPS — Zbornica za arhitekturo in prostor Slovenije: zastopa PA, PKA, PPN; vodi imenike; organizira strokovne izpite; izvaja disciplinske postopke; sprejema kodeks etike; izvaja strokovni nadzor. IZS — Inženirska zbornica Slovenije: zastopa PI; ista naloge za inženirsko področje. Disciplinski postopek: se vodi ob kršitvi zakona, kodeksa etike ali standardov; sankcije: opomin, denarna kazen, začasen izbris, trajni izbris.",
+        src: [{ law: "ZAID", art: "18.–38. člen" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 7. ZAKON O KATASTRU NEPREMIČNIN (ZKN)
+  // ═══════════════════════════════════════════════════
+  {
+    id: "zkn",
+    title: "7. Zakon o katastru nepremičnin (ZKN)",
+    subtitle: "Določa vzpostavitev, vodenje in vzdrževanje katastra nepremičnin",
+    icon: "📏",
+    color: "#4f46e5",
+    lawKey: "ZKN",
+    questions: [
+      {
+        id: "zkn-1",
+        q: "Izrazi: lastnina, etaža, del stavbe, lastnik stavbe, namenska raba zemljišča, nepremičnina, parcela, podatki o priključkih, poligon, projektant, sosednji parceli, število etaž, tip položaja stavbe, zemljišče",
+        a: "NEPREMIČNINA: parcela ali del stavbe, vpisan v kataster. PARCELA: prostorsko odmerjen del zemeljske površine. DEL STAVBE: samostojna enota v stavbi (stanovanje, poslovni prostor). ETAŽA: del stavbe med dvema zaporednima stropoma. POLIGON: zaprta linija, ki določa obris stavbe ali parcele na terenu. PROJEKTANT: oseba, ki izdela elaborat za vpis v kataster. SOSEDNJI PARCELI: parceli, ki imata skupno mejo.",
+        src: [{ law: "ZKN", art: "3. člen" }]
+      },
+      {
+        id: "zkn-2",
+        q: "Kataster nepremičnin — pristojnost, dopustitev dostopa (4.–10. člen)",
+        a: "Kataster nepremičnin vodi Geodetska uprava RS (GURS). Pristojnosti: vpis, sprememba in izbris podatkov o nepremičninah. Dostop: podatki so javni (z omejitvami za osebne podatke). Elektronski dostop je mogoč prek portala GURS (e-Prostor). Podatki se uporabljajo za: odmero davkov, prostorsko načrtovanje, gradbena dovoljenja, zemljiško knjigo.",
+        src: [{ law: "ZKN", art: "4.–10. člen" }]
+      },
+      {
+        id: "zkn-3",
+        q: "Podatki, ki se vodijo v katastru nepremičnin (11. člen)",
+        a: "V katastru se vodijo: (1) identifikacijska oznaka (parcelna številka, številka stavbe/dela stavbe); (2) lega in oblika (koordinate, obris); (3) površina; (4) namenska raba; (5) boniteta zemljišča; (6) podatki o stavbi (etažnost, material, leto gradnje); (7) podatki o delu stavbe (površina, namembnost, povezave); (8) lastnik; (9) upravljavec (za javno infrastrukturo).",
+        src: [{ law: "ZKN", art: "11. člen" }]
+      },
+      {
+        id: "zkn-4",
+        q: "Parcelna številka, številka stavbe in številka dela stavbe (12. člen)",
+        a: "Parcelna številka: enolična oznaka parcele v okviru katastrske občine (npr. 125/3). Številka stavbe: enolična oznaka stavbe v okviru katastrske občine. Številka dela stavbe: kombinacija številke stavbe in zaporedne številke dela (npr. stavba 45, del 1). Vse številke so unikatne znotraj katastrske občine.",
+        src: [{ law: "ZKN", art: "12. člen" }]
+      },
+      {
+        id: "zkn-5",
+        q: "Dejanska raba zemljišč (19. člen) in boniteta zemljišč (20. člen)",
+        a: "Dejanska raba: kategorizacija zemljišč glede na dejansko uporabo (kmetijsko, gozdno, pozidano, vodno). Določa se na podlagi ortofoto posnetkov in terenskih ogledov. Boniteta: kakovostna ocena zemljišča za kmetijsko proizvodnjo, izražena v bonitetnih točkah. Višja boniteta = boljše kmetijsko zemljišče. Relevantno pri spreminjanju namenske rabe (varstvo najboljših kmetijskih zemljišč).",
+        src: [{ law: "ZKN", art: "19.–20. člen" }]
+      },
+      {
+        id: "zkn-6",
+        q: "Hišna številka, številka naslova (21.–22. člen) in podatki o stavbi/delu stavbe (23.–32. člen)",
+        a: "Hišna številka se dodeli vsaki stavbi, ki ima naslov. Številka naslova je kombinacija hišne številke, ulice in naselja. Podatki o stavbi: etažnost, leto gradnje, material nosilne konstrukcije, priključki (voda, elektrika, kanalizacija). Podatki o delu stavbe: dejanska raba, površina, lega v stavbi (etaža), število prostorov.",
+        src: [{ law: "ZKN", art: "21.–32. člen" }]
+      },
+      {
+        id: "zkn-7",
+        q: "Katastrski postopki (38. člen) in vrste katastrskih postopkov (ureditev meje, parcelacija, izravnava meje, komasacija, sprememba bonitete)",
+        a: "Katastrski postopki: (1) ureditev meje — določitev poteka meje po katastrskih podatkih; (2) parcelacija — delitev ali združitev parcel; (3) izravnava meje — manjša sprememba poteka meje med sosednjima parcelama; (4) komasacija — preoblikovanje parcel na večjem območju; (5) sprememba bonitete — sprememba bonitetnih točk. Vse postopke izvaja geodetsko podjetje, odloča GURS.",
+        src: [{ law: "ZKN", art: "38., 43.–54. člen" }]
+      },
+      {
+        id: "zkn-8",
+        q: "Postopek za izdelavo elaborata (43.–54. člen)",
+        a: "Geodetski elaborat se izdela za vsak katastrski postopek. Postopek: (1) naročilo geodetskega podjetja; (2) terenska izmera; (3) izdelava elaborata; (4) vložitev zahteve na GURS; (5) GURS preveri skladnost in izvede vpis. Elaborat mora vsebovati: skico, koordinate točk, zapisnik mejne obravnave, izjave lastnikov. Za vpis stavbe: elaborat za vpis stavbe v kataster.",
+        src: [{ law: "ZKN", art: "43.–54. člen" }]
+      },
+      {
+        id: "zkn-9",
+        q: "Vpis stavbe in delov stavb (93.–106. člen)",
+        a: "Vpis stavbe v kataster je obvezen po pridobitvi uporabnega dovoljenja. Elaborat za vpis stavbe izdela geodet. Vsebina: obris stavbe (tloris), etažni načrti, podatki o delih stavbe, povezave s parcelo. Vpis delov stavbe (stanovanj, poslovnih prostorov) je podlaga za oblikovanje etažne lastnine in vpis v zemljiško knjigo.",
+        src: [{ law: "ZKN", art: "93.–106. člen" }]
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 8. STANDARDI ZAPS
+  // ═══════════════════════════════════════════════════
+  {
+    id: "st-zaps",
+    title: "8. Standardi ZAPS",
+    subtitle: "ST ZAPS 01–06: Arhitekturne in krajinskoarhitekturne storitve",
+    icon: "📋",
+    color: "#be185d",
+    lawKey: null,
+    questions: [
+      { id: "stzaps-1", q: "Kaj je Standard ZAPS?", a: "Standard ZAPS (ST ZAPS) je strokovni akt, ki ga sprejme ZAPS in določa pravila za opravljanje arhitekturnih in krajinskoarhitekturnih storitev. Standardi opredeljujejo vsebino storitev, način vrednotenja, izdelavo projektne dokumentacije. Obsegajo: ST ZAPS 01 (Storitve), ST ZAPS 02 (Vrednotenje), ST ZAPS 03 (Vsebina A načrtov), ST ZAPS 04 (Izdelava A načrtov), ST ZAPS 05 (Vsebina KA načrtov), ST ZAPS 06 (Izdelava KA načrtov).", src: [{ law: "ST ZAPS", art: "01–06" }] },
+      { id: "stzaps-2", q: "Ali je uporaba ST ZAPS obvezna?", a: "Uporaba ST ZAPS je obvezna za člane ZAPS (pooblaščene arhitekte in krajinske arhitekte). Obveznost izhaja iz ZAID in splošnih aktov ZAPS. Neupoštevanje standardov se obravnava v disciplinskem postopku. Za naročnike storitev standardi niso neposredno zavezujoči, a določajo minimalne vsebine storitev, ki jih mora arhitekt zagotoviti.", src: [{ law: "ZAID", art: "6. člen" }, { law: "ST ZAPS", art: "01" }] },
+      { id: "stzaps-3", q: "V katerem delu je ST ZAPS obvezen?", a: "Obvezen je v delu, ki določa minimalne vsebine projektne dokumentacije in storitev, ki jih mora pooblaščeni arhitekt zagotoviti. Prostovoljni del so priporočila za nadstandardne storitve. Posebni del (splošni del izpita) zahteva poznavanje osnovnih vsebin vseh šestih standardov.", src: [{ law: "ST ZAPS", art: "01" }] },
+      { id: "stzaps-4", q: "Kaj so pravila stroke?", a: "Pravila stroke so strokovna pravila in uzance, ki jih mora spoštovati vsak pooblaščeni strokovnjak. Obsegajo: standarde ZAPS, tehnične smernice, kodeks poklicne etike, Evrokode, SIST standarde in druga pravila, ki urejajo kakovost arhitekturnega projektiranja. Kršitev pravil stroke je podlaga za disciplinsko in odškodninsko odgovornost.", src: [{ law: "ZAID", art: "6. člen" }, { law: "ST ZAPS", art: "01" }] },
+      { id: "stzaps-5", q: "Naštej faze v življenjskem ciklu objekta!", a: "Po ST ZAPS 01 so faze: (1) Zasnova — programska izhodišča, idejna zasnova; (2) Projektiranje — idejni projekt, DGD, PZI; (3) Izvedba — gradnja, nadzor; (4) Prevzem — tehnični pregled, uporabno dovoljenje; (5) Uporaba — obratovanje, vzdrževanje; (6) Prenova ali odstranitev. Vsaka faza ima definirane storitve in odgovornosti arhitekta.", src: [{ law: "ST ZAPS", art: "01, poglavje 3" }] },
+      { id: "stzaps-6", q: "Kakšna je razlika med osnovnimi in posebnimi storitvami?", a: "Osnovne storitve so minimalni obseg storitev, ki jih arhitekt mora izvesti za posamezno fazo (npr. projektiranje DGD). Posebne storitve so dodatne storitve, ki presegajo osnovni obseg (npr. vizualizacije, svetovanje pri izbiri izvajalca, posebne študije). Posebne storitve se dogovorijo in obračunajo posebej. ST ZAPS 01 natančno našteva obe vrsti storitev po fazah.", src: [{ law: "ST ZAPS", art: "01, poglavje 4" }] },
+      { id: "stzaps-7", q: "Naštej vrste objektov po ST ZAPS", a: "ST ZAPS razlikuje objekte po: (1) stavbe za prebivanje (enostanovanjske, večstanovanjske); (2) poslovne stavbe; (3) industrijske stavbe; (4) javne stavbe (izobraževanje, zdravstvo, kultura); (5) sakralne stavbe; (6) objekti za šport in rekreacijo; (7) kmetijski objekti; (8) odprti prostori (parki, trgi, krajina). Vrsta objekta vpliva na obseg storitev in vrednotenje.", src: [{ law: "ST ZAPS", art: "01, priloga" }] },
+      { id: "stzaps-8", q: "Vrste projektiranja po ST ZAPS", a: "Vrste projektiranja: (1) arhitekturno projektiranje (za stavbe); (2) krajinskoarhitekturno projektiranje (za odprti prostor); (3) urbanistično načrtovanje (OPN, OPPN); (4) notranje oblikovanje (interier). Vsaka vrsta ima svoje specifične zahteve glede vsebine in obsega projektne dokumentacije.", src: [{ law: "ST ZAPS", art: "01" }] },
+      { id: "stzaps-9", q: "Kaj je vodenje projektiranja?", a: "Vodenje projektiranja je koordinacija vseh udeležencev v procesu projektiranja (arhitekt, inženirji, specialisti). Vodja projektiranja (praviloma PA) je odgovoren za: usklajenost vseh načrtov, pravočasnost, kakovost projektne dokumentacije, komunikacijo z investitorjem in mnenjedajalci. Po GZ-1 je odgovorni vodja projekta tisti, ki podpiše vodilno mapo.", src: [{ law: "ST ZAPS", art: "01" }, { law: "GZ-1", art: "29. člen" }] },
+      { id: "stzaps-10", q: "Katere storitve v skladu s ST ZAPS izvaja arhitekt oziroma krajinski arhitekt, kadar ni vodja projektiranja?", a: "Kadar ni vodja projektiranja, arhitekt izvaja storitve v okviru svojega načrta: izdelava arhitekturnega/KA načrta, uskladitev z drugimi načrti, zagotavljanje bistvenih zahtev v okviru svojega področja. Ne prevzema pa odgovornosti za usklajenost celotne projektne dokumentacije — to je naloga vodja projektiranja.", src: [{ law: "ST ZAPS", art: "01, poglavje 4.2" }] },
+      { id: "stzaps-11", q: "Kaj pomeni osnovi BIM?", a: "BIM (Building Information Modeling) je digitalno modeliranje objekta, ki vključuje geometrijske in informacijske podatke o objektu skozi celoten življenjski cikel. Osnove BIM za arhitekta: 3D model z informacijami o materialih, količinah, fazah gradnje; koordinacija med disciplinami (clash detection); podlaga za PZI, popise in obračune. ST ZAPS upošteva BIM kot sodoben način projektiranja.", src: [{ law: "ST ZAPS", art: "04" }] },
+      { id: "stzaps-12", q: "Razlika med gradbenim in projektantskim nadzorom?", a: "Gradbeni nadzor (po GZ-1): nadzornik preverja skladnost izvedbe s projektom in GD, kakovost materialov, bistvene zahteve. Projektantski nadzor (po ST ZAPS): projektant (arhitekt) preverja, ali se gradnja izvaja v skladu z njegovim projektom, svetuje pri izvedbenih detajlih. Gradbeni nadzor je zakonska obveznost, projektantski nadzor je pogodbena storitev.", src: [{ law: "GZ-1", art: "78.–83. člen" }, { law: "ST ZAPS", art: "01" }] },
+      { id: "stzaps-13", q: "Kaj so skupni stroški?", a: "Skupni stroški so stroški, ki niso neposredno del projektiranja, a so potrebni za izvedbo projekta: potni stroški, tiskanje dokumentacije, geodetske storitve, geomehanske raziskave, upravne takse, pridobivanje mnenj. Po ST ZAPS 02 se skupni stroški obračunavajo posebej od honorarja za storitve.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-14", q: "Kaj so stroški gradnje?", a: "Stroški gradnje so celotni stroški izvedbe objekta — materiali, delo, oprema, gradbišče. So podlaga za izračun honorarja arhitekta po ST ZAPS 02 (vrednotenje storitev). Stroški gradnje se ocenijo v fazi zasnove in natančneje določijo v fazi PZI (popisi del). Ne vključujejo: stroškov zemljišča, komunalnega prispevka, davkov.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-15", q: "Kaj je ocena stroškov in kako se določi?", a: "Ocena stroškov je predračun predvidenih stroškov gradnje. Določi se na podlagi: (1) referenčnih cen na enoto (€/m² BTP); (2) popisov del in predizmere v fazi PZI; (3) primerjalnih podatkov (stroški primerljivih objektov). Natančnost ocene se povečuje z napredovanjem projektiranja: v idejni fazi ±20–30%, v PZI fazi ±10–15%.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-16", q: "Kaj je aproksimativni predračun?", a: "Aproksimativni predračun je okvirna ocena stroškov gradnje na podlagi površine objekta (BTP) in referenčne cene na m². Izdela se v zgodnjih fazah projektiranja (idejni projekt). Služi kot orientacija za investitorja pri odločitvi o nadaljevanju projekta. Natančnost: ±20–30% od dejanskih stroškov.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-17", q: "Kaj je popis del?", a: "Popis del je seznam vseh gradbenih, obrtniških in instalacijskih del s količinami, opisi in enotami mere. Je del PZI dokumentacije. Služi kot podlaga za: pridobivanje ponudb izvajalcev, sklenitev gradbene pogodbe, obračun izvedenih del. Popis mora biti natančen, pregleden in usklajen z načrti.", src: [{ law: "ST ZAPS", art: "01, 04" }] },
+      { id: "stzaps-18", q: "Kaj je projektantski predračun?", a: "Projektantski predračun je predračun stroškov gradnje, ki ga izdela projektant na podlagi popisov del in trenutnih tržnih cen. Je natančnejši od aproksimativnega predračuna (±10–15%). Izdela se v fazi PZI. Služi investitorju za planiranje financiranja in primerjavo ponudb izvajalcev.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-19", q: "Kaj je projektna naloga?", a: "Projektna naloga je dokument, v katerem investitor opredeli zahteve in želje za objekt: namembnost, program prostorov, tehnične zahteve, proračun, roki, posebne zahteve. Je izhodišče za projektiranje. Arhitekt praviloma pomaga investitorju pri pripravi projektne naloge (posebna storitev po ST ZAPS).", src: [{ law: "ST ZAPS", art: "01" }] },
+      { id: "stzaps-20", q: "Kaj so normirane ure (NU)?", a: "Normirana ura (NU) je enota za merjenje obsega dela pri projektiranju. Ena NU predstavlja eno uro dela pooblaščenega strokovnjaka. Vrednost NU se določi z dogovorom (tržna cena). Obseg storitev v NU se izračuna po tabelah v ST ZAPS 02 glede na vrsto objekta, zahtevnost in fazo projektiranja.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-21", q: "Kaj predstavlja vrednost ene NU?", a: "Vrednost ene NU se določi kot urna postavka za delo pooblaščenega arhitekta, ki vključuje: stroške dela, režijske stroške pisarne, zavarovanje, dobiček. ZAPS objavlja priporočeno vrednost NU. Dejanska vrednost je stvar pogajanj med arhitektom in naročnikom.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-22", q: "Katere stroške se upošteva pri izračunu vrednosti NU?", a: "Pri izračunu vrednosti NU se upoštevajo: (1) bruto plača arhitekta; (2) prispevki delodajalca; (3) režijski stroški pisarne (najem, oprema, programska oprema); (4) zavarovanje poklicne odgovornosti; (5) stalno usposabljanje; (6) dobiček. Skupna vrednost teh stroškov, deljena s produktivnimi urami na leto, da vrednost ene NU.", src: [{ law: "ST ZAPS", art: "02" }] },
+      { id: "stzaps-23", q: "Kaj je projektna dokumentacija?", a: "Projektna dokumentacija je celota načrtov, poročil, popisov in drugih dokumentov, ki so podlaga za graditev objekta. Vrste: DGD (za gradbeno dovoljenje), PZI (za izvedbo gradnje), PID (izvedenih del), DZO (dokazilo o zanesljivosti). Vsaka vrsta ima predpisano vsebino po Pravilniku o projektni dokumentaciji.", src: [{ law: "GZ-1", art: "37.–40. člen" }, { law: "ST ZAPS", art: "03" }] },
+      { id: "stzaps-24", q: "Kaj je načrt?", a: "Načrt je del projektne dokumentacije, ki ga izdela posamezni pooblaščeni strokovnjak za svoje strokovno področje (arhitekturni načrt, gradbeni načrt, načrt strojnih instalacij, načrt elektroinštalacij ipd.). Vsak načrt ima odgovornega projektanta. Načrt vsebuje: tehnično poročilo, grafične prikaze (tlorisi, prerezi, fasade, detajli), popise del.", src: [{ law: "GZ-1", art: "29. člen" }, { law: "ST ZAPS", art: "03" }] },
+      { id: "stzaps-25", q: "Kaj je list — naštej vsebino posameznega lista?", a: "List je posamezna stran grafičnega dela načrta. Vsebina lista: glava lista (ime projekta, investitor, projektant, faza, merilo, datum, številka lista), grafični prikaz (tloris, prerez, fasada, detajl, situacija), legenda oznak, opombe. Formati: A4–A0, digitalno. Merila: situacija 1:500–1:1000, tlorisi/prerezi 1:50–1:100, detajli 1:1–1:20.", src: [{ law: "ST ZAPS", art: "03, 04" }] },
+      { id: "stzaps-26", q: "Kaj so gradbeni elementi?", a: "Gradbeni elementi so sestavni deli objekta: temelji, stene (nosilne, predelne), stropne konstrukcije, streha, stopnice, okna, vrata, fasada, tlaki, izolacije, inštalacije. V popisih del se gradbeni elementi razdelijo po skupinah (zemeljska dela, betonska dela, zidarska dela, tesarska dela, krovska dela, kleparska dela, ključavničarska dela, steklarska dela ipd.).", src: [{ law: "ST ZAPS", art: "04" }] },
+      { id: "stzaps-27", q: "Razlika med nosilnim in nošenim delom gradbenega elementa?", a: "Nosilni del (konstrukcija): prevzema in prenaša obtežbe na temeljna tla — temelji, nosilne stene, stebri, grede, plošče, ostrešje. Nošeni del (nekonstrukcijski element): ne prenaša obtežb, je pritrjen na konstrukcijo — predelne stene, obloge, inštalacije, stavbno pohištvo. Razlikovanje je bistveno za: statični izračun, požarno varnost, klasifikacijo posegov (rekonstrukcija vs. vzdrževanje).", src: [{ law: "ST ZAPS", art: "04" }, { law: "GZ-1", art: "3. člen" }] },
+      { id: "stzaps-28", q: "Razlika med gradbeno (zidarsko), modularno in svetlo (finalno) mero?", a: "Gradbena (zidarska) mera: mera od osi do osi ali od zunanjega roba do zunanjega roba konstrukcije — vključuje debelino sten. Modularna mera: mera, ki temelji na modularnem sistemu (osnovni modul M = 10 cm); usklajena z gradbenimi elementi (opeka, beton). Svetla (finalna) mera: mera med končno obdelanimi površinami (med ometom, med tlaki) — dejanska uporabna dimenzija prostora. Svetla mera = gradbena mera – debelina oblog.", src: [{ law: "ST ZAPS", art: "04" }] },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════
+  // 9. PODZAKONSKI AKTI
+  // ═══════════════════════════════════════════════════
+  {
+    id: "podzakonski",
+    title: "9. Podzakonski akti",
+    subtitle: "Uredba o razvrščanju objektov, Pravilnik o projektni dokumentaciji",
+    icon: "📑",
+    color: "#6d28d9",
+    lawKey: "GZ-1",
+    questions: [
+      { id: "podz-1", q: "Klasifikacija objektov — kako se objekti klasificirajo, kaj je razvrščanje, kako se uredba uporablja pri projektiranju?", a: "Objekti se klasificirajo po CC-SI (vrsta rabe) in razvrščajo po zahtevnosti (zahtevni, manj zahtevni, nezahtevni, enostavni). Merila za razvrščanje: velikost, višina, namembnost, vpliv na okolje. Uredba o razvrščanju objektov (UL RS 96/22) natančno določa merila. Pri projektiranju: razvrščanje določa obseg projektne dokumentacije, vrsto dovoljenja, udeležence.", src: [{ law: "GZ-1", art: "3., 5. člen" }] },
+      { id: "podz-2", q: "Kaj je posamezen objekt, samostoječa stavba, kaj je fizična povezanost?", a: "Posamezen objekt: ena zaključena gradbena celota. Samostoječa stavba: stavba, ki ni fizično povezana z drugo stavbo. Fizična povezanost: stavbe so fizično povezane, če imajo skupne konstrukcijske elemente (skupna stena, skupni temelji). Dvojček: dve stanovanjski enoti s skupno steno. Vrstna hiša: niz fizično povezanih stanovanjskih enot.", src: [{ law: "GZ-1", art: "Uredba o razvrščanju, 3. člen" }] },
+      { id: "podz-3", q: "Katera pravila se uporablja pri izračunavanju velikosti stavb?", a: "Za izračun velikosti stavb se uporablja standard SIST ISO 9836 (površine in prostornine stavb). Ključni pojmi: bruto tlorisna površina (BTP), neto tlorisna površina (NTP), uporabna površina, prostornina. BTP se meri po zunanjem obodu stavbe vključno z zidovi. NTP = BTP – površina konstrukcijskih elementov.", src: [{ law: "GZ-1", art: "Uredba o razvrščanju" }] },
+      { id: "podz-4", q: "Katere so značilnosti stavbe — etaže, prostornina, višina, globina?", a: "Etaže: klet (K), pritličje (P), nadstropja (N1, N2...), mansarda (M), podstrešje. Prostornina: bruto prostornina stavbe, izračunana po SIST ISO 9836. Višina: od kote terena do najvišje točke stavbe (sleme, atika). Globina: del stavbe pod nivojem terena (kletne etaže). Etažnost se določa v prostorskih aktih (npr. P+2 pomeni pritličje in dve nadstropji).", src: [{ law: "GZ-1", art: "Uredba o razvrščanju" }] },
+      { id: "podz-5", q: "Katere, po zahtevnosti ločene vrste objektov poznamo, kako se ločijo med seboj?", a: "Štiri kategorije: (1) ZAHTEVNI: objekti z velikim vplivom na okolje ali zahtevno konstrukcijo (višji od 30 m, več kot 5000 m² BTP, javna infrastruktura); (2) MANJ ZAHTEVNI: praviloma stanovanjske stavbe do P+2, poslovne stavbe srednje velikosti; (3) NEZAHTEVNI: majhni objekti (garaže do 50 m², lope, nadstreški); (4) ENOSTAVNI: najmanjši objekti (ograje, škarpe do 1,5 m, urbana oprema).", src: [{ law: "GZ-1", art: "5. člen, Uredba o razvrščanju" }] },
+      { id: "podz-6", q: "Kako se klasificira objekte, kadar gre za sestavljen oz. večnamenski objekt?", a: "Sestavljen objekt se klasificira po prevladujoči rabi (namembnosti, ki zavzema največji del BTP). Večnamenski objekt: če nobena raba ne presega 50%, se klasificira v kategorijo z najzahtevnejšimi pogoji. Pri razvrščanju po zahtevnosti: odločilni so najzahtevnejši parametri (npr. če en del presega merila za manj zahtevne, je celoten objekt razvrščen kot zahteven).", src: [{ law: "GZ-1", art: "Uredba o razvrščanju" }] },
+      { id: "podz-7", q: "Kaj je vzdrževanje; kaj so vzdrževalna dela; katere so vrste vzdrževalnih del na stavbah?", a: "Vzdrževanje: izvedba del za ohranitev objekta v stanju, ki zagotavlja uporabnost. Vrste vzdrževalnih del: (1) redna vzdrževalna dela (pleskanje, popravila); (2) investicijska vzdrževalna dela (zamenjava strehe, fasade, oken — brez posega v konstrukcijo); (3) vzdrževalna dela v javno korist (na infrastrukturi). Za vzdrževalna dela ni potrebno GD (razen če pomenijo rekonstrukcijo).", src: [{ law: "GZ-1", art: "3., 7. člen" }] },
+      { id: "podz-8", q: "Kaj je objekt kot proizvod; pod kakšnimi pogoji je proizvod lahko nezahteven objekt?", a: "Objekt kot proizvod je prefabriciran objekt (kontejner, modularna stavba), ki se kot celota postavi na lokacijo. Pogoji za nezahtevni objekt: mora ustrezati merilom za nezahtevne objekte (površina, višina, namembnost). Če presega merila → manj zahtevni ali zahtevni objekt → potrebno GD.", src: [{ law: "GZ-1", art: "Uredba o razvrščanju" }] },
+      { id: "podz-9", q: "Kaj je manjša rekonstrukcija, katera dela so dovoljena na obodu in izven objekta, pod kakšnimi pogoji?", a: "Manjša rekonstrukcija: sprememba, pri kateri se ne posega v nosilno konstrukcijo in ne spreminja zunanjega videza. Dovoljena dela: zamenjava oken (enake velikosti), zamenjava vrat, notranje predelave (predelne stene), zamenjava instalacij, zamenjava tlakov. Pogoj: dela ne smejo vplivati na izpolnjevanje bistvenih zahtev in morajo biti skladna s prostorskimi akti.", src: [{ law: "GZ-1", art: "3., 8. člen" }] },
+      { id: "podz-10", q: "Kaj so začasni objekti, kakšni so splošni pogoji za začasne objekte?", a: "Začasni objekti: objekti, namenjeni začasni uporabi za omejen čas (npr. gradbišča, prireditveni šotori, sezonski objekti). Pogoji: morajo biti odstranjeni po preteku roka; ne smejo trajno spreminjati prostora; za nekatere je potrebno GD z omejenim rokom veljavnosti; morajo izpolnjevati bistvene zahteve za čas uporabe.", src: [{ law: "GZ-1", art: "9. člen" }] },
+      { id: "podz-11", q: "Katere vrste dokumentacije obravnava Pravilnik o projektni in drugi dokumentaciji?", a: "Pravilnik (UL RS 30/23) obravnava: (1) DGD — dokumentacija za gradbeno dovoljenje; (2) PZI — projektna dokumentacija za izvedbo gradnje; (3) PID — projektna dokumentacija izvedenih del; (4) DZO — dokazilo o zanesljivosti objekta. Vsaka vrsta ima predpisano vsebino: vodilna mapa, načrti, elaborati, popisi, tehnična poročila.", src: [{ law: "GZ-1", art: "37.–40. člen" }] },
+      { id: "podz-12", q: "Katere so projektne DGD za različne vrste gradenj (novogradnja, rekonstrukcija, prizidava)?", a: "Za vsako vrsto gradnje DGD vsebuje: (1) VODILNA MAPA: splošni podatki, izjava odgovornega projektanta, grafični prikaz lokacije; (2) NAČRTI: arhitekturni, gradbeni, instalacijski (obseg odvisen od zahtevnosti); (3) ELABORATI: geodetski, požarne varnosti, energetske učinkovitosti. Za novogradnjo: popolna DGD. Za rekonstrukcijo: prikaz obstoječega in predvidenega stanja. Za prizidavo: vključno z obstoječim objektom.", src: [{ law: "GZ-1", art: "37.–40. člen, Pravilnik o PD" }] },
+      { id: "podz-13", q: "Kaj je ime in vsebina projektne dokumentacije izvedenih del — PID?", a: "PID (projektna dokumentacija izvedenih del) dokumentira dejanski izvedeni objekt. Izdela se po zaključku gradnje, pred pridobitvijo uporabnega dovoljenja. Vsebuje: prikaz dejanskega stanja (tlorisi, prerezi, fasade), spremembe glede na PZI, podatke za vpis v kataster. Odgovorni projektant izjavi, da je objekt zgrajen skladno z GD oz. da so odstopanja v okviru dopustnih.", src: [{ law: "GZ-1", art: "39. člen, Pravilnik o PD" }] },
+      { id: "podz-14", q: "Kaj je ime in vsebina dokazila o zanesljivosti objekta — DZO?", a: "DZO (dokazilo o zanesljivosti objekta) je dokument, ki dokazuje, da objekt izpolnjuje bistvene zahteve. Vsebuje: izjave odgovornih oseb (projektant, nadzornik, izvajalec), potrdila o kakovosti vgrajenih materialov, merilne rezultate (zvočna izolacija, energetska učinkovitost), geodetski načrt. DZO je pogoj za pridobitev uporabnega dovoljenja.", src: [{ law: "GZ-1", art: "40. člen, Pravilnik o PD" }] },
+    ],
+  },
+];
+
+/* ════════════════════════════════════════════════════════════════════
+   KOMPONENTE
+   ════════════════════════════════════════════════════════════════════ */
+
+function SourceBadge({ s }) {
+  const url = s.law && PISRS[s.law] ? PISRS[s.law] : null;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 font-medium"
+      style={{ background: "#e0f2fe", color: "#0369a1" }}>
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer"
+          className="underline hover:no-underline" style={{ color: "#0369a1" }}>
+          {s.law}, {s.art}
+        </a>
+      ) : (
+        <span>{s.law ? `${s.law}, ${s.art}` : s.art}</span>
+      )}
+    </span>
+  );
+}
+
+function QuestionCard({ item, sectionColor, learned, toggleLearned, editedAnswer, setEditedAnswer }) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const displayAnswer = editedAnswer ?? item.a;
+
+  return (
+    <div className="border rounded-lg mb-3 overflow-hidden transition-shadow hover:shadow-md"
+      style={{ borderLeftWidth: 4, borderLeftColor: sectionColor }}>
+      <button
+        className="w-full text-left px-4 py-3 flex items-start gap-3"
+        style={{ background: learned ? "#f0fdf4" : "#fff" }}
+        onClick={() => setOpen(o => !o)}>
+        <span className="mt-0.5 text-lg select-none">{open ? "▾" : "▸"}</span>
+        <span className="flex-1 font-medium text-gray-800 text-sm leading-relaxed">{item.q}</span>
+        <span className="shrink-0 cursor-pointer text-lg" title={learned ? "Označeno kot naučeno" : "Označi kot naučeno"}
+          onClick={e => { e.stopPropagation(); toggleLearned(); }}>
+          {learned ? "✅" : "⬜"}
+        </span>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 border-t" style={{ background: "#fafbfc" }}>
+          {editing ? (
+            <textarea
+              className="w-full mt-3 p-3 rounded border text-sm leading-relaxed font-normal"
+              style={{ minHeight: 160 }}
+              value={displayAnswer}
+              onChange={e => setEditedAnswer(e.target.value)}
+            />
+          ) : (
+            <p className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">{displayAnswer}</p>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500 mr-1">VIRI:</span>
+            {item.src.map((s, i) => <SourceBadge key={i} s={s} />)}
+            <button
+              className="ml-auto text-xs px-2 py-1 rounded border"
+              style={{ color: "#6b7280" }}
+              onClick={() => setEditing(e => !e)}>
+              {editing ? "Shrani" : "Uredi"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProgressBar({ learned, total }) {
+  const pct = total === 0 ? 0 : Math.round((learned / total) * 100);
+  return (
+    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+      <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: "#22c55e" }} />
+      </div>
+      <span>{learned}/{total}</span>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MAIN APP
+   ════════════════════════════════════════════════════════════════════ */
+
+function App() {
+  const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
+  const [search, setSearch] = useState("");
+  const [learnedMap, setLearnedMap] = useState({});
+  const [editedAnswers, setEditedAnswers] = useState({});
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+
+  const toggleLearned = useCallback((qId) => {
+    setLearnedMap(prev => ({ ...prev, [qId]: !prev[qId] }));
+  }, []);
+
+  const setEditedAnswer = useCallback((qId, val) => {
+    setEditedAnswers(prev => ({ ...prev, [qId]: val }));
+  }, []);
+
+  // Filter
+  const filteredSections = useMemo(() => {
+    if (!search.trim()) return SECTIONS;
+    const s = search.toLowerCase();
+    return SECTIONS.map(sec => ({
+      ...sec,
+      questions: sec.questions.filter(q =>
+        q.q.toLowerCase().includes(s) || q.a.toLowerCase().includes(s)
+      ),
+    })).filter(sec => sec.questions.length > 0);
+  }, [search]);
+
+  const currentSection = showAll
+    ? null
+    : filteredSections.find(s => s.id === activeSection) || filteredSections[0];
+
+  const displaySections = showAll ? filteredSections : (currentSection ? [currentSection] : []);
+
+  // Stats
+  const totalQ = SECTIONS.reduce((n, s) => n + s.questions.length, 0);
+  const totalLearned = Object.values(learnedMap).filter(Boolean).length;
+
+  // Export
+  const handleExport = () => {
+    let md = "# Strokovni izpit PA — Splošni del\n\n";
+    SECTIONS.forEach(sec => {
+      md += `## ${sec.title}\n\n`;
+      sec.questions.forEach(q => {
+        const ans = editedAnswers[q.id] ?? q.a;
+        md += `### ${q.q}\n\n${ans}\n\n`;
+        md += `**Viri:** ${q.src.map(s => `${s.law || ""} ${s.art}`).join("; ")}\n\n---\n\n`;
+      });
+    });
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "izpitna-vprasanja-splosni-del.md"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50" style={{ fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" }}>
+      {/* ── SIDEBAR ── */}
+      {sidebarOpen && (
+        <aside className="w-72 shrink-0 bg-white border-r flex flex-col overflow-hidden">
+          <div className="p-4 border-b">
+            <h1 className="text-base font-bold text-gray-900">Strokovni izpit PA</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Splošni del · ZAPS 2026</p>
+            <ProgressBar learned={totalLearned} total={totalQ} />
+          </div>
+          <nav className="flex-1 overflow-y-auto p-2">
+            <button
+              className={`w-full text-left px-3 py-2 rounded text-sm mb-1 ${showAll ? "bg-gray-100 font-semibold" : "hover:bg-gray-50"}`}
+              onClick={() => { setShowAll(true); }}>
+              📚 Vsa vprašanja
+            </button>
+            {SECTIONS.map(sec => {
+              const secLearned = sec.questions.filter(q => learnedMap[q.id]).length;
+              const active = !showAll && activeSection === sec.id;
+              return (
+                <button key={sec.id}
+                  className={`w-full text-left px-3 py-2 rounded text-sm mb-1 transition-colors ${active ? "font-semibold" : "hover:bg-gray-50"}`}
+                  style={active ? { background: sec.color + "15", color: sec.color } : {}}
+                  onClick={() => { setActiveSection(sec.id); setShowAll(false); }}>
+                  <span className="mr-1.5">{sec.icon}</span>
+                  <span>{sec.title.replace(/^\d+\.\s*/, "")}</span>
+                  <span className="block text-xs mt-0.5" style={{ color: "#9ca3af" }}>
+                    {secLearned}/{sec.questions.length} naučeno
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+          <div className="p-3 border-t">
+            <button onClick={handleExport}
+              className="w-full text-xs px-3 py-2 rounded border text-gray-600 hover:bg-gray-50">
+              Izvozi kot Markdown
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* ── MAIN ── */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Toolbar */}
+        <div className="shrink-0 bg-white border-b px-4 py-3 flex items-center gap-3">
+          <button onClick={() => setSidebarOpen(o => !o)}
+            className="text-gray-500 hover:text-gray-800 text-lg" title="Preklopi stranski meni">
+            ☰
+          </button>
+          <input
+            type="text"
+            placeholder="Išči po vprašanjih in odgovorih..."
+            className="flex-1 px-3 py-1.5 rounded-lg border text-sm"
+            style={{ maxWidth: 500 }}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <span className="text-xs text-gray-400 whitespace-nowrap">
+            {totalLearned}/{totalQ} naučeno ({totalQ > 0 ? Math.round(totalLearned / totalQ * 100) : 0}%)
+          </span>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          {displaySections.length === 0 && (
+            <p className="text-center text-gray-400 mt-12">Ni zadetkov za »{search}«</p>
+          )}
+          {displaySections.map(sec => (
+            <div key={sec.id} className="mb-8">
+              <div className="mb-4">
+                <h2 className="text-lg font-bold" style={{ color: sec.color }}>
+                  {sec.icon} {sec.title}
+                </h2>
+                {sec.subtitle && <p className="text-xs text-gray-500 mt-0.5">{sec.subtitle}</p>}
+                <ProgressBar
+                  learned={sec.questions.filter(q => learnedMap[q.id]).length}
+                  total={sec.questions.length}
+                />
+              </div>
+              {sec.questions.map(q => (
+                <QuestionCard
+                  key={q.id}
+                  item={q}
+                  sectionColor={sec.color}
+                  learned={!!learnedMap[q.id]}
+                  toggleLearned={() => toggleLearned(q.id)}
+                  editedAnswer={editedAnswers[q.id]}
+                  setEditedAnswer={(val) => setEditedAnswer(q.id, val)}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+
+// Override App to use localStorage persistence
+const OrigApp = App;
+
+function PersistentApp() {
+  const [activeSection, setActiveSection] = useState(() => loadState("section", SECTIONS[0].id));
+  const [search, setSearch] = useState("");
+  const [learnedMap, setLearnedMap] = useState(() => loadState("learned", {}));
+  const [editedAnswers, setEditedAnswers] = useState(() => loadState("edits", {}));
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+
+  // Persist on change
+  useEffect(() => { saveState("learned", learnedMap); }, [learnedMap]);
+  useEffect(() => { saveState("edits", editedAnswers); }, [editedAnswers]);
+  useEffect(() => { saveState("section", activeSection); }, [activeSection]);
+
+  const toggleLearned = useCallback((qId) => {
+    setLearnedMap(prev => ({ ...prev, [qId]: !prev[qId] }));
+  }, []);
+
+  const setEditedAnswer = useCallback((qId, val) => {
+    setEditedAnswers(prev => ({ ...prev, [qId]: val }));
+  }, []);
+
+  const filteredSections = useMemo(() => {
+    if (!search.trim()) return SECTIONS;
+    const s = search.toLowerCase();
+    return SECTIONS.map(sec => ({
+      ...sec,
+      questions: sec.questions.filter(q =>
+        q.q.toLowerCase().includes(s) || q.a.toLowerCase().includes(s)
+      ),
+    })).filter(sec => sec.questions.length > 0);
+  }, [search]);
+
+  const currentSection = showAll ? null : filteredSections.find(s => s.id === activeSection) || filteredSections[0];
+  const displaySections = showAll ? filteredSections : (currentSection ? [currentSection] : []);
+
+  const totalQ = SECTIONS.reduce((n, s) => n + s.questions.length, 0);
+  const totalLearned = Object.values(learnedMap).filter(Boolean).length;
+
+  const handleExport = () => {
+    let md = "# Strokovni izpit PA — Splošni del\n\n";
+    SECTIONS.forEach(sec => {
+      md += `## ${sec.title}\n\n`;
+      sec.questions.forEach(q => {
+        const ans = editedAnswers[q.id] ?? q.a;
+        md += `### ${q.q}\n\n${ans}\n\n`;
+        md += `**Viri:** ${q.src.map(s => `${s.law || ""} ${s.art}`).join("; ")}\n\n---\n\n`;
+      });
+    });
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "izpitna-vprasanja-splosni-del.md"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return React.createElement("div", { className: "app" },
+    // Overlay
+    React.createElement("div", {
+      className: "overlay" + (sidebarOpen ? " visible" : ""),
+      onClick: () => setSidebarOpen(false)
+    }),
+    // Sidebar
+    React.createElement("aside", { className: "sidebar" + (sidebarOpen ? " open" : "") },
+      React.createElement("div", { className: "sidebar-head" },
+        React.createElement("h1", null, "Strokovni izpit PA"),
+        React.createElement("p", null, "Splošni del · ZAPS 2026"),
+        React.createElement(ProgressBar, { learned: totalLearned, total: totalQ })
+      ),
+      React.createElement("nav", { className: "sidebar-nav" },
+        React.createElement("button", {
+          className: "nav-item" + (showAll ? " active" : ""),
+          style: showAll ? { background: "#f1f5f9" } : {},
+          onClick: () => { setShowAll(true); setSidebarOpen(false); }
+        }, "📚 Vsa vprašanja"),
+        SECTIONS.map(sec => {
+          const secLearned = sec.questions.filter(q => learnedMap[q.id]).length;
+          const active = !showAll && activeSection === sec.id;
+          return React.createElement("button", {
+            key: sec.id,
+            className: "nav-item" + (active ? " active" : ""),
+            style: active ? { background: sec.color + "12", color: sec.color, borderLeft: "3px solid " + sec.color } : {},
+            onClick: () => { setActiveSection(sec.id); setShowAll(false); setSidebarOpen(false); }
+          },
+            React.createElement("span", null, sec.icon + " " + sec.title.replace(/^\d+\.\s*/, "")),
+            React.createElement("span", { className: "nav-sub" }, secLearned + "/" + sec.questions.length + " naučeno")
+          );
+        })
+      ),
+      React.createElement("div", { className: "sidebar-foot" },
+        React.createElement("button", { className: "export-btn", onClick: handleExport }, "📥 Izvozi kot Markdown")
+      )
+    ),
+    // Main
+    React.createElement("main", { className: "main" },
+      // Toolbar
+      React.createElement("div", { className: "toolbar" },
+        React.createElement("button", { className: "menu-btn", onClick: () => setSidebarOpen(o => !o) }, "☰"),
+        React.createElement("input", {
+          className: "search-input",
+          type: "text",
+          placeholder: "Išči po vprašanjih...",
+          value: search,
+          onChange: e => setSearch(e.target.value)
+        }),
+        React.createElement("span", { className: "stats" }, totalLearned + "/" + totalQ + " (" + (totalQ > 0 ? Math.round(totalLearned / totalQ * 100) : 0) + "%)")
+      ),
+      // Content
+      React.createElement("div", { className: "content" },
+        displaySections.length === 0 && React.createElement("p", { className: "empty" }, "Ni zadetkov za »" + search + "«"),
+        displaySections.map(sec => React.createElement("div", { key: sec.id, style: { marginBottom: 32 } },
+          React.createElement("div", { className: "section-header" },
+            React.createElement("h2", { className: "section-title", style: { color: sec.color } }, sec.icon + " " + sec.title),
+            sec.subtitle && React.createElement("p", { className: "section-sub" }, sec.subtitle),
+            React.createElement(ProgressBar, { learned: sec.questions.filter(q => learnedMap[q.id]).length, total: sec.questions.length })
+          ),
+          sec.questions.map(q => React.createElement(QuestionCard, {
+            key: q.id, item: q, sectionColor: sec.color,
+            learned: !!learnedMap[q.id],
+            toggleLearned: () => toggleLearned(q.id),
+            editedAnswer: editedAnswers[q.id],
+            setEditedAnswer: val => setEditedAnswer(q.id, val)
+          }))
+        ))
+      )
+    )
+  );
+}
+
+// Override SourceBadge and QuestionCard to use createElement instead of JSX
+// (Babel handles JSX in the original definitions, so they work as-is)
+
+ReactDOM.render(React.createElement(PersistentApp), document.getElementById("root"));
+</script>
+</body>
+</html>
