@@ -79,7 +79,9 @@ Verzije 2025 (ST ZAPS 01–04) oz. zadnje dostopne (ST ZAPS 05–06).
 
 | Datoteka | Vsebina | Vir |
 |---|---|---|
-| 03-Splosni-akt-strokovni-izpit-UL2018.pdf | Splošni akt o strokovnem izpitu (UL RS 2018-01-2007) | uradni-list.si |
+| 03-Splosni-akt-strokovni-izpit-NPB1-2023.pdf | Splošni akt o strokovnem izpitu — NPB1 (UL RS 187/2021 in 116/2023) | zaps.si |
+
+Splošni akt iz leta 2018 (UL RS 40/2018) je starejša verzija; aktualno besedilo je NPB1 zgoraj, ki ga objavlja ZAPS.
 
 ---
 
